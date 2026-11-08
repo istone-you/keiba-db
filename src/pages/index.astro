@@ -72,6 +72,33 @@ const searchBlob = (h) => [
   const normalize = (s) => String(s || '').normalize('NFKC').toLowerCase().trim();
   let visible = [...cards];
 
+  // Remember precisely where the visitor was before opening an individual horse.
+  const listStateKey = 'umaAtlasListState';
+  function readListState() {
+    try {
+      const value = JSON.parse(sessionStorage.getItem(listStateKey) || 'null');
+      return value && typeof value === 'object' ? value : null;
+    } catch { return null; }
+  }
+  function saveListState(pendingReturn = false) {
+    try {
+      sessionStorage.setItem(listStateKey, JSON.stringify({
+        q: query.value,
+        group: group.value,
+        order: order.value,
+        y: window.scrollY,
+        pendingReturn,
+      }));
+    } catch { /* storage may be unavailable */ }
+  }
+  function applyListState(state) {
+    if (!state) return;
+    query.value = typeof state.q === 'string' ? state.q : '';
+    group.value = ['all', 'book', 'new'].includes(state.group) ? state.group : 'all';
+    order.value = ['default', 'recent', 'name'].includes(state.order) ? state.order : 'default';
+    updateList();
+  }
+
   function rememberOrder() {
     try {
       sessionStorage.setItem('umaAtlasBrowse', JSON.stringify(visible.map(el => ({
@@ -97,9 +124,26 @@ const searchBlob = (h) => [
   group.addEventListener('change',updateList);
   order.addEventListener('change',updateList);
   list.addEventListener('click',event => {
-    if (event.target.closest('a[data-horse-card]')) rememberOrder();
+    if (event.target.closest('a[data-horse-card]')) {
+      rememberOrder();
+      saveListState(true);
+    }
   });
-  updateList();
+  // When coming back from a horse, restore filters before measuring scroll.
+  const initialListState = readListState();
+  if (initialListState?.pendingReturn) applyListState(initialListState);
+  else updateList();
+
+  window.addEventListener('pageshow', () => {
+    const saved = readListState();
+    if (!saved?.pendingReturn) return;
+    applyListState(saved);
+    // Images live in fixed-size frames, so they cannot shift the restored position.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      window.scrollTo({ top: Math.max(0, Number(saved.y) || 0), left: 0, behavior: 'instant' });
+      saveListState(false);
+    }));
+  });
 
   // Photos are optional. Query only images approaching the viewport.
   const photoNodes = new Map(Array.from(document.querySelectorAll('#list [data-photo]')).map(el => [el.dataset.photo,el]));
