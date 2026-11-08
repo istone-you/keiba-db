@@ -1,0 +1,20 @@
+---
+import HorsePhoto from './HorsePhoto.astro';
+import { horseHref } from '../lib/horses.js';
+
+const { horse, eager = false, note, compact = false, attrs = {} } = Astro.props;
+const lead = horse.races.at(-1);
+---
+<a class:list={['card', compact && 'card-compact']} href={horseHref(horse)} {...attrs}>
+  <HorsePhoto horse={horse} eager={eager} />
+  <div class="card-body">
+    <div class="card-meta">
+      <span class:list={['chip', horse.group === 'new' && 'chip-new']}>{horse.group === 'book' ? '名馬' : '近年'}</span>
+      <span>{horse.era}</span>
+    </div>
+    <h3 class="card-title">{horse.name}</h3>
+    <div class="card-anchor">{horse.anchor}</div>
+    {!compact && <p class="card-desc">{horse.desc}</p>}
+    <div class="card-foot">{note ?? (lead ? `${lead.year} ${lead.title}` : '—')}</div>
+  </div>
+</a>

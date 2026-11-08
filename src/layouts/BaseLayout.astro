@@ -4,10 +4,10 @@ import { basePath } from '../lib/horses.js';
 
 const {
   title = 'UMA ATLAS | 競走馬図鑑',
-  description = '競走馬157頭の戦績・血統・個性をたどる競走馬データベース。',
-  showFooter = true,
+  description = '日本競馬の名馬と近年の活躍馬をたどる競走馬データベース。',
+  image,
 } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site || 'https://istone-you.github.io').href;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
 ---
 <!doctype html>
 <html lang="ja">
@@ -17,21 +17,22 @@ const canonical = new URL(Astro.url.pathname, Astro.site || 'https://istone-you.
     <meta name="theme-color" content="#173b31" />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="preconnect" href="https://thumb.wikimedia.org" crossorigin />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {image && <meta property="og:image" content={image} />}
     <title>{title}</title>
   </head>
   <body>
-    <header class="top">
-      <div class="wrap topnav">
-        <a class="logo" href={basePath} aria-label="UMA ATLAS ホーム"><span class="logo-symbol" aria-hidden="true">♞</span>UMA ATLAS</a>
-        <nav class="navlinks" aria-label="メインメニュー">
-          <a href={basePath + '#index'}>競走馬一覧</a>
-          <span class="topmark">2026.11.08版</span>
-        </nav>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="logo" href={basePath}><span aria-hidden="true">♞</span>UMA ATLAS</a>
+        <nav aria-label="メインメニュー"><a href={basePath} data-back-link>競走馬一覧</a></nav>
       </div>
     </header>
     <slot />
-    {showFooter && <footer class="footer">
-      <div class="wrap"><div><b>UMA ATLAS</b> · 競走馬の歴史と現在を知るための個人図鑑</div><div>2026年11月8日版。</div></div>
-    </footer>}
+    <footer class="site-footer">
+      <div class="wrap"><b>UMA ATLAS</b> · 競走馬の歴史と現在を知るための個人図鑑。写真はWikipediaより。</div>
+    </footer>
   </body>
 </html>

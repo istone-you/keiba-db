@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Triggered by the microCMS webhook ("GitHub Actions" type) when content is published.
+  repository_dispatch:
+    types: [microcms-update]
 
 permissions:
   contents: read
@@ -30,6 +33,9 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Build Astro static site
         run: npm run build
+        env:
+          MICROCMS_SERVICE_DOMAIN: keiba-db
+          MICROCMS_API_KEY: ${{ secrets.MICROCMS_API_KEY }}
       - name: Upload generated pages
         uses: actions/upload-pages-artifact@v3
         with:

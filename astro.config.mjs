@@ -5,4 +5,7 @@ export default defineConfig({
   base: '/keiba-db',
   output: 'static',
   trailingSlash: 'always',
+  // Fetch the next page on hover/touch so navigation feels instant.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
+  build: { inlineStylesheets: 'always' },
 });

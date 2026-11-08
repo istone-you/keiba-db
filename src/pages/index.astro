@@ -1,197 +1,146 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { horses, horseHref, yearOf } from '../lib/horses.js';
+import HorseCard from '../components/HorseCard.astro';
+import { horses } from '../lib/horses.js';
 
+const count = (g) => horses.filter((h) => h.group === g).length;
 const searchBlob = (h) => [
   h.name, h.anchor, h.desc, h.story, h.era,
-  ...(h.races || []), ...(h.related || []),
-  ...Object.values(h.profile || {}),
-].join(' ').normalize('NFKC').toLowerCase();
+  ...h.races.map((r) => r.title),
+  h.pedigree.sire, h.pedigree.dam, h.pedigree.damSire,
+  h.profile.trainer, h.profile.coat,
+  ...h.related.map((r) => r.name),
+].filter(Boolean).join(' ').normalize('NFKC').toLowerCase();
 ---
 <BaseLayout
   title="UMA ATLAS | 競走馬図鑑"
-  description="日本競馬の名馬と近年の活躍馬157頭。代表レース、来歴、血統、関連馬を調べられる競走馬データベース。"
+  description={`日本競馬の名馬と近年の活躍馬${horses.length}頭。代表レース、来歴、血統、産駒、関連馬を調べられる競走馬データベース。`}
 >
   <section class="hero">
-    <div class="wrap hero-inner">
-      <div class="eyebrow">JAPANESE RACEHORSE ENCYCLOPEDIA</div>
+    <div class="wrap">
+      <p class="eyebrow">JAPANESE RACEHORSE ENCYCLOPEDIA</p>
       <h1>名馬を、もっと深く知る。</h1>
-      <p>歴代の名馬から2026年の活躍馬まで。勝ったレース、血統、ライバル、歩んだ物語を一頭ずつたどる競走馬図鑑。</p>
-      <div class="hero-stat"><span><b>{horses.length}</b>頭収録</span><span><b>92</b>歴代名馬</span><span><b>65</b>2023年以降の注目馬</span></div>
+      <p class="hero-lead">歴代の名馬から近年の活躍馬まで。勝ったレース、血統、産駒、ライバルを一頭ずつたどる競走馬図鑑。</p>
+      <div class="hero-stats">
+        <span><b>{horses.length}</b>頭収録</span>
+        <span><b>{count('book')}</b>歴代名馬</span>
+        <span><b>{count('new')}</b>2023年以降</span>
+      </div>
     </div>
   </section>
-  <main class="wrap" id="index">
-    <div class="intro">
-      <div><h2>競走馬を探す</h2><p>収録馬の主な勝ち鞍や背景を、馬ごとの詳細ページで読めます。</p></div>
-      <a class="source-link" href="https://www.jbis.or.jp/" target="_blank" rel="noopener noreferrer">JBISサーチ ↗</a>
-    </div>
-    <form class="controls" id="controls" role="search" onsubmit="return false">
-      <div class="control search-control"><label for="q">馬名・勝ち鞍・血統・特徴から検索</label><input id="q" type="search" placeholder="例：イクイノックス、天皇賞、ディープインパクト" autocomplete="off" /></div>
-      <div class="control"><label for="group">収録区分</label><select id="group"><option value="all">すべて</option><option value="book">歴代名馬 92頭</option><option value="new">2023年以降の活躍馬 65頭</option></select></div>
-      <div class="control"><label for="order">並べ替え</label><select id="order"><option value="default">年代順</option><option value="recent">主な勝利が新しい順</option><option value="name">馬名順</option></select></div>
+
+  <main class="wrap catalog" id="index">
+    <form class="controls" role="search" onsubmit="return false">
+      <label class="control control-search">
+        <span>馬名・勝ち鞍・血統・特徴から検索</span>
+        <input id="q" name="q" type="search" placeholder="例：イクイノックス、天皇賞、ディープインパクト" autocomplete="off" />
+      </label>
+      <label class="control">
+        <span>収録区分</span>
+        <select id="group" name="group">
+          <option value="all">すべて</option>
+          <option value="book">歴代名馬 {count('book')}頭</option>
+          <option value="new">2023年以降の活躍馬 {count('new')}頭</option>
+        </select>
+      </label>
+      <label class="control">
+        <span>並べ替え</span>
+        <select id="order" name="order">
+          <option value="default">年代順</option>
+          <option value="recent">主な勝利が新しい順</option>
+          <option value="name">馬名順</option>
+        </select>
+      </label>
     </form>
-    <div class="result-bar"><h2 id="resultTitle">収録馬一覧</h2><p id="resultCount">{horses.length}頭が該当</p></div>
-    <div class="horse-grid" id="list">
+
+    <p class="result-count" id="resultCount" aria-live="polite">{horses.length}頭が該当</p>
+    <div class="grid" id="list">
       {horses.map((h, i) => (
-        <a
-          class="horse-card"
-          href={horseHref(h)}
-          data-horse-card
-          data-id={h.id}
-          data-name={h.name}
-          data-search={searchBlob(h)}
-          data-group={h.group}
-          data-year={yearOf(h)}
-          data-index={i}
-          aria-label={h.name + 'の詳しい解説を読む'}
-        >
-          <div class:list={['cover', i % 3 === 1 ? 'dark' : i % 3 === 2 ? 'rose' : '']} data-photo={h.name}>
-            <span aria-hidden="true">♞</span><small>{h.group === 'book' ? '名馬' : '近年'}</small>
-          </div>
-          <div class="horse-info">
-            <div class="tiny">{h.era}</div>
-            <h3>{h.name}</h3>
-            <div class="anchor">{h.anchor}</div>
-            <p>{h.story}</p>
-            <div class="race-line">代表戦：{h.races?.[0] || '—'}</div>
-          </div>
-        </a>
+        <HorseCard
+          horse={h}
+          eager={i < 8}
+          attrs={{
+            'data-card': '',
+            'data-id': h.id,
+            'data-name': h.name,
+            'data-group': h.group,
+            'data-year': h.latestYear,
+            'data-index': i,
+            'data-search': searchBlob(h),
+          }}
+        />
       ))}
     </div>
-    <p class="catalog-note">※ 掲載している勝ち鞍は抜粋です。写真が見つからない馬は図案で表示します。</p>
+    <p class="empty" id="empty" hidden>条件に合う馬が見つかりませんでした。</p>
+    <p class="note">※ 掲載している勝ち鞍は抜粋です。写真が見つからない馬は図案で表示します。</p>
   </main>
-</BaseLayout>
 
-<script>
-  const list = document.querySelector('#list');
-  const cards = Array.from(list.querySelectorAll('[data-horse-card]'));
-  const query = document.querySelector('#q');
-  const group = document.querySelector('#group');
-  const order = document.querySelector('#order');
-  const count = document.querySelector('#resultCount');
-  const normalize = (s) => String(s || '').normalize('NFKC').toLowerCase().trim();
-  let visible = [...cards];
+  <!-- Inline + synchronous: filters from the URL are applied before first paint, so there is no flash. -->
+  <script is:inline>
+    (() => {
+      const list = document.getElementById('list');
+      const cards = Array.from(list.children);
+      const q = document.getElementById('q');
+      const group = document.getElementById('group');
+      const order = document.getElementById('order');
+      const countEl = document.getElementById('resultCount');
+      const empty = document.getElementById('empty');
+      const norm = (s) => String(s || '').normalize('NFKC').toLowerCase().trim();
+      const params = new URLSearchParams(location.search);
+      q.value = params.get('q') || '';
+      group.value = ['book', 'new'].includes(params.get('group')) ? params.get('group') : 'all';
+      order.value = ['recent', 'name'].includes(params.get('order')) ? params.get('order') : 'default';
 
-  // Remember precisely where the visitor was before opening an individual horse.
-  const listStateKey = 'umaAtlasListState';
-  function readListState() {
-    try {
-      const value = JSON.parse(sessionStorage.getItem(listStateKey) || 'null');
-      return value && typeof value === 'object' ? value : null;
-    } catch { return null; }
-  }
-  function saveListState(pendingReturn = false) {
-    try {
-      sessionStorage.setItem(listStateKey, JSON.stringify({
-        q: query.value,
-        group: group.value,
-        order: order.value,
-        y: window.scrollY,
-        pendingReturn,
-      }));
-    } catch { /* storage may be unavailable */ }
-  }
-  function applyListState(state) {
-    if (!state) return;
-    query.value = typeof state.q === 'string' ? state.q : '';
-    group.value = ['all', 'book', 'new'].includes(state.group) ? state.group : 'all';
-    order.value = ['default', 'recent', 'name'].includes(state.order) ? state.order : 'default';
-    updateList();
-  }
-
-  function rememberOrder() {
-    try {
-      sessionStorage.setItem('umaAtlasBrowse', JSON.stringify(visible.map(el => ({
-        id: el.dataset.id, name: el.dataset.name,
-      }))));
-    } catch { /* storage may be unavailable */ }
-  }
-  function updateList() {
-    const q = normalize(query.value), g = group.value, sort = order.value;
-    visible = cards.filter(el =>
-      (g === 'all' || el.dataset.group === g) && (!q || normalize(el.dataset.search).includes(q))
-    );
-    if (sort === 'name') visible.sort((a,b) => a.dataset.name.localeCompare(b.dataset.name,'ja'));
-    else if (sort === 'recent') visible.sort((a,b) => (Number(b.dataset.year) - Number(a.dataset.year)) || (Number(a.dataset.index) - Number(b.dataset.index)));
-    else visible.sort((a,b) => Number(a.dataset.index) - Number(b.dataset.index));
-    const matched = new Set(visible);
-    cards.forEach(el => { el.hidden = !matched.has(el) });
-    list.append(...visible);
-    count.textContent = visible.length + '頭が該当';
-    rememberOrder();
-  }
-  query.addEventListener('input',updateList);
-  group.addEventListener('change',updateList);
-  order.addEventListener('change',updateList);
-  list.addEventListener('click',event => {
-    if (event.target.closest('a[data-horse-card]')) {
-      rememberOrder();
-      saveListState(true);
-    }
-  });
-  // When coming back from a horse, restore filters before measuring scroll.
-  const initialListState = readListState();
-  if (initialListState?.pendingReturn) applyListState(initialListState);
-  else updateList();
-
-  window.addEventListener('pageshow', () => {
-    const saved = readListState();
-    if (!saved?.pendingReturn) return;
-    applyListState(saved);
-    // Images live in fixed-size frames, so they cannot shift the restored position.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      window.scrollTo({ top: Math.max(0, Number(saved.y) || 0), left: 0, behavior: 'instant' });
-      saveListState(false);
-    }));
-  });
-
-  // Photos are optional. Query only images approaching the viewport.
-  const photoNodes = new Map(Array.from(document.querySelectorAll('#list [data-photo]')).map(el => [el.dataset.photo,el]));
-  const requested = new Set();
-  const queue = [];
-  let timer = 0;
-  let loading = false;
-  function schedule() {
-    if (!timer) timer = window.setTimeout(() => { timer=0; void flushPhotos() },180);
-  }
-  async function flushPhotos() {
-    if (loading || !queue.length) return;
-    loading = true;
-    const batch = queue.splice(0,15);
-    const endpoint = 'https://ja.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&pithumbsize=450&titles=' + encodeURIComponent(batch.join('|'));
-    try {
-      const resp = await fetch(endpoint,{credentials:'omit'});
-      if (resp.ok) {
-        const json=await resp.json();
-        const redirectMap=new Map((json.query?.redirects||[]).map(item=>[item.to,item.from]));
-        for(const page of json.query?.pages||[]){
-          const src=page.thumbnail?.source, key=redirectMap.get(page.title)||page.title;
-          if(!src || !photoNodes.has(key))continue;
-          const holder=photoNodes.get(key);
-          if(holder.querySelector('img'))continue;
-          const img=document.createElement('img');
-          img.src=src;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';
-          img.addEventListener('error',()=>img.remove(),{once:true});
-          holder.append(img);
+      const sorters = {
+        default: (a, b) => a.dataset.index - b.dataset.index,
+        recent: (a, b) => (b.dataset.year - a.dataset.year) || (a.dataset.index - b.dataset.index),
+        name: (a, b) => a.dataset.name.localeCompare(b.dataset.name, 'ja'),
+      };
+      let lastOrder = 'default';
+      function update() {
+        const term = norm(q.value), g = group.value, o = order.value;
+        let shown = 0;
+        for (const el of cards) {
+          const hit = (g === 'all' || el.dataset.group === g) && (!term || el.dataset.search.includes(term));
+          el.hidden = !hit;
+          if (hit) shown++;
         }
+        if (o !== lastOrder) { list.append(...[...cards].sort(sorters[o])); lastOrder = o; }
+        countEl.textContent = shown + '頭が該当';
+        empty.hidden = shown > 0;
+        const next = new URLSearchParams();
+        if (q.value) next.set('q', q.value);
+        if (g !== 'all') next.set('group', g);
+        if (o !== 'default') next.set('order', o);
+        const qs = next.toString();
+        history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
       }
-    } catch { /* use placeholder */ }
-    loading = false;
-    if(queue.length)schedule();
-  }
-  if ('IntersectionObserver' in window) {
-    const observer=new IntersectionObserver(entries=>{
-      for(const entry of entries){
-        if(!entry.isIntersecting)continue;
-        observer.unobserve(entry.target);
-        const name=entry.target.dataset.photo;
-        if(!requested.has(name)){requested.add(name);queue.push(name)}
-      }
-      if(queue.length)schedule();
-    },{rootMargin:'450px 0px',threshold:0.01});
-    photoNodes.forEach(el=>observer.observe(el));
-  } else {
-    for(const name of photoNodes.keys()){queue.push(name);requested.add(name)}
-    schedule();
-  }
-</script>
+      update();
+
+      // Returning via a "競走馬一覧" link: jump to the saved position before the first paint.
+      try {
+        if (sessionStorage.getItem('umaAtlasRestore')) {
+          sessionStorage.removeItem('umaAtlasRestore');
+          const y = Number(JSON.parse(sessionStorage.getItem('umaAtlasBrowse') || '{}').y) || 0;
+          history.scrollRestoration = 'manual';
+          window.scrollTo(0, y);
+          // The footer is parsed after this script; re-apply in case the page was still too short.
+          if (window.scrollY < y) document.addEventListener('DOMContentLoaded', () => window.scrollTo(0, y), { once: true });
+        }
+      } catch {}
+
+      q.addEventListener('input', update);
+      group.addEventListener('change', update);
+      order.addEventListener('change', update);
+
+      // Hand the current browsing order to detail pages for their prev/next links.
+      list.addEventListener('click', (e) => {
+        if (!e.target.closest('a[data-card]')) return;
+        try {
+          const ids = [...list.children].filter((el) => !el.hidden).map((el) => [el.dataset.id, el.dataset.name]);
+          sessionStorage.setItem('umaAtlasBrowse', JSON.stringify({ ids, back: location.search, y: window.scrollY }));
+        } catch {}
+      });
+    })();
+  </script>
+</BaseLayout>

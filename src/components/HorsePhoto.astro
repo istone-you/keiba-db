@@ -1,0 +1,21 @@
+---
+// Fixed-ratio frame: the image (or placeholder) never changes the layout.
+const { horse, eager = false, size = 'card' } = Astro.props;
+const photo = horse.photo;
+---
+<div class:list={['photo', `photo-${size}`, `tone-${Number(horse.id) % 3}`]} style={`view-transition-name: photo-${horse.id}`}>
+  {photo ? (
+    <img
+      src={photo.url}
+      width={photo.width}
+      height={photo.height}
+      alt={size === 'hero' ? horse.name + 'の写真' : ''}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+      fetchpriority={eager && size === 'hero' ? 'high' : undefined}
+      referrerpolicy="no-referrer"
+    />
+  ) : (
+    <span class="photo-mark" aria-hidden="true">♞</span>
+  )}
+</div>
