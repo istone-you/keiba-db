@@ -65,3 +65,37 @@ a.horse-card{text-decoration:none}
   .cover{min-height:155px}
   .detail-page-photo{height:165px}
 }
+
+/* Mobile horse photos: use a full-width landscape frame, never a narrow sidebar. */
+@media (max-width: 740px) {
+  .horse-page .detail-lead {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .horse-page .detail-page-photo {
+    display: flex;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    max-height: none;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+  .horse-page .detail-page-photo img {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center center;
+  }
+  .horse-page .detail-lead > div:last-child {
+    min-width: 0;
+  }
+}
