@@ -1,0 +1,36 @@
+---
+import '../styles/global.css';
+import { basePath } from '../lib/horses.js';
+
+const {
+  title = 'UMA ATLAS | 競走馬図鑑',
+  description = '競走馬157頭の戦績・血統・個性をたどる競走馬データベース。',
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site || 'https://istone-you.github.io').href;
+---
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#173b31" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap topnav">
+        <a class="logo" href={basePath} aria-label="UMA ATLAS ホーム"><span class="logo-symbol" aria-hidden="true">♞</span>UMA ATLAS</a>
+        <nav class="navlinks" aria-label="メインメニュー">
+          <a href={basePath + '#index'}>競走馬一覧</a>
+          <span class="topmark">2026.11.08版</span>
+        </nav>
+      </div>
+    </header>
+    <slot />
+    <footer class="footer">
+      <div class="wrap"><div><b>UMA ATLAS</b> · 競走馬の歴史と現在を知るための個人図鑑</div><div>2026年11月8日版。</div></div>
+    </footer>
+  </body>
+</html>
