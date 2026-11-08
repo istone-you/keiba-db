@@ -1,0 +1,150 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { horses, horseHref, basePath, wikiHref, jbisSearchHref } from '../../lib/horses.js';
+
+export function getStaticPaths() {
+  return horses.map((horse, index) => ({
+    params: { id: horse.id },
+    props: { horse, index },
+  }));
+}
+
+const { horse, index } = Astro.props;
+const prev = index > 0 ? horses[index - 1] : null;
+const next = index < horses.length - 1 ? horses[index + 1] : null;
+const profile = horse.profile || {};
+const fields = [
+  ['生年', profile.birth ? profile.birth + '年' : null],
+  ['性別', profile.sex],
+  ['毛色', profile.coat],
+  ['父', profile.sire],
+  ['母', profile.dam],
+  ['調教師', profile.trainer],
+  ['通算成績', profile.record],
+].filter(([, value]) => !!value);
+const relatives = (horse.related || []).map(name => horses.find(other => other.name === name)).filter(Boolean);
+const timeline = [...(horse.races || [])].sort((a,b) => Number(a.slice(0,4)) - Number(b.slice(0,4)));
+---
+<BaseLayout
+  title={horse.name + 'の戦績・血統・特徴 | UMA ATLAS'}
+  description={horse.name + '。' + horse.desc + ' 主な勝ち鞍や来歴、血統、関連馬を掲載。'}
+>
+  <main class="wrap horse-page">
+    <nav class="breadcrumb" aria-label="パンくずリスト"><a href={basePath}>競走馬一覧</a><span aria-hidden="true">›</span><span>{horse.name}</span></nav>
+    <article class="detail-outer">
+      <div class="detail-head">
+        <strong>UMA ATLAS　/　HORSE PROFILE</strong>
+        <a class="back-link" href={basePath + '#index'}>一覧に戻る ↗</a>
+      </div>
+      <div class="detail-main">
+        <div class="detail-lead">
+          <div class="portrait detail-page-photo" id="portrait" data-photo={horse.name}>
+            <span aria-hidden="true">♞</span>
+            <small>写真が見つかった場合に表示</small>
+          </div>
+          <div>
+            <div class="tiny">{horse.group === 'book' ? '歴代名馬' : '2023–2026 活躍馬'}　/　{horse.era}</div>
+            <h1 id="detailTitle" class="profile-title">{horse.name}</h1>
+            <div class="subtitle">{horse.anchor}</div>
+            <div class="tags"><span class="tag">主な勝ち鞍 {horse.races.length}件を掲載</span><span class="tag">競走史・背景</span>{profile.sire && <span class="tag">血統情報あり</span>}</div>
+            <p class="detail-intro">{horse.desc}</p>
+          </div>
+        </div>
+        <div class="detail-content">
+          <div class="detail-col">
+            <section class="paper"><h2>この馬はどんな馬？</h2><p>{horse.story}</p></section>
+            <section class="paper">
+              <h2>主な勝ち鞍・代表レース</h2>
+              <ol class="timeline">
+                {timeline.map((race) => (
+                  <li>
+                    <time>{race.match(/^\d{4}/)?.[0] || '—'}</time>
+                    <span>{race.replace(/^\d{4}\s*/, '')}</span>
+                  </li>
+                ))}
+              </ol>
+              <p class="caution">代表レースの抜粋です。全出走歴・全GI勝利数を表すものではありません。時代によりレース名と格付けが異なります。</p>
+            </section>
+            {relatives.length > 0 && (
+              <section class="paper">
+                <h2>関係の深い競走馬</h2>
+                <div class="related">{relatives.map(other => <a href={horseHref(other)}>{other.name} →</a>)}</div>
+                <p class="caution">親子・兄弟・ライバルなどの関係については各馬の本文も参照してください。</p>
+              </section>
+            )}
+          </div>
+          <div class="detail-col">
+            <section class="paper">
+              <h2>血統・プロフィール</h2>
+              {fields.length ? <dl class="facts">{fields.map(([key,value]) => <div><dt>{key}</dt><dd>{value}</dd></div>)}</dl> : <p>生年や血統などの詳細情報は確認中です。JBISサーチで参照できます。</p>}
+              <p class="caution">確認できた項目のみ掲載しています。空欄を推測で埋めていません。</p>
+            </section>
+            <section class="paper">
+              <h2>詳しい競走成績を調べる</h2>
+              <div class="detail-links">
+                <a href={profile.source || jbisSearchHref(horse.name)} target="_blank" rel="noopener noreferrer">{profile.source ? 'JBIS馬情報' : 'JBISでこの馬を探す'} ↗</a>
+                <a href={wikiHref(horse.name)} target="_blank" rel="noopener noreferrer">Wikipedia ↗</a>
+                <a href="https://www.jra.go.jp/" target="_blank" rel="noopener noreferrer">JRA公式 ↗</a>
+              </div>
+              <p class="caution">レース結果の追加情報や最新の記録はリンク先を確認してください。</p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </article>
+  </main>
+  <nav
+    class="detail-bottom-nav"
+    aria-label="前後の競走馬に移動"
+    data-current-id={horse.id}
+    data-base={basePath}
+  >
+    <a href={prev ? horseHref(prev) : undefined} aria-disabled={!prev ? 'true' : undefined} data-prev>
+      <span class="direction">← 前の馬</span><span class="horse-name" data-name>{prev?.name || '先頭の馬'}</span>
+    </a>
+    <a href={next ? horseHref(next) : undefined} aria-disabled={!next ? 'true' : undefined} data-next>
+      <span class="direction">次の馬 →</span><span class="horse-name" data-name>{next?.name || '末尾の馬'}</span>
+    </a>
+  </nav>
+</BaseLayout>
+
+<script>
+  // Preserve the search/sort order when a user opens a horse from the catalog.
+  const nav=document.querySelector('.detail-bottom-nav');
+  if(nav){
+    const current=nav.dataset.currentId;
+    let items=[];
+    try {
+      const val=JSON.parse(sessionStorage.getItem('umaAtlasBrowse')||'[]');
+      if(Array.isArray(val)) items=val.filter(item=>item && typeof item.id==='string' && typeof item.name==='string');
+    } catch { /* use SSG defaults */ }
+    const idx=items.findIndex(item=>item.id===current);
+    if(idx>=0){
+      for(const [selector,entry,empty] of [
+        ['[data-prev]',idx>0?items[idx-1]:null,'先頭の馬'],
+        ['[data-next]',idx<items.length-1?items[idx+1]:null,'末尾の馬'],
+      ]){
+        const a=nav.querySelector(selector);
+        a.querySelector('[data-name]').textContent=entry?.name||empty;
+        if(entry){ a.href=nav.dataset.base+'horse/'+encodeURIComponent(entry.id)+'/';a.removeAttribute('aria-disabled') }
+        else { a.removeAttribute('href');a.setAttribute('aria-disabled','true') }
+      }
+    }
+  }
+  // Optional external photo, loaded only on this individual detail page.
+  const portrait=document.querySelector('#portrait');
+  if(portrait){
+    const name=portrait.dataset.photo;
+    const url='https://ja.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&pithumbsize=800&titles='+encodeURIComponent(name);
+    fetch(url,{credentials:'omit'}).then(r=>r.ok?r.json():null).then(data=>{
+      const page=data?.query?.pages?.find(p=>p.thumbnail?.source);
+      if(!page)return;
+      const img=document.createElement('img');
+      img.src=page.thumbnail.source;
+      img.alt=name+'の参考写真';
+      img.referrerPolicy='no-referrer';
+      img.addEventListener('error',()=>img.remove(),{once:true});
+      portrait.appendChild(img);
+    }).catch(()=>{ /* placeholder stays */ });
+  }
+</script>
