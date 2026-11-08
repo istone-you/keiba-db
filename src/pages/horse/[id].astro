@@ -28,13 +28,14 @@ const timeline = [...(horse.races || [])].sort((a,b) => Number(a.slice(0,4)) - N
 <BaseLayout
   title={horse.name + 'の戦績・血統・特徴 | UMA ATLAS'}
   description={horse.name + '。' + horse.desc + ' 主な勝ち鞍や来歴、血統、関連馬を掲載。'}
+  showFooter={false}
 >
   <main class="wrap horse-page">
     <nav class="breadcrumb" aria-label="パンくずリスト"><a href={basePath}>競走馬一覧</a><span aria-hidden="true">›</span><span>{horse.name}</span></nav>
     <article class="detail-outer">
       <div class="detail-head">
         <strong>UMA ATLAS　/　HORSE PROFILE</strong>
-        <a class="back-link" href={basePath + '#index'}>一覧に戻る ↗</a>
+        <a class="back-link" href={basePath}>一覧に戻る ↗</a>
       </div>
       <div class="detail-main">
         <div class="detail-lead">
