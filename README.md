@@ -46,7 +46,7 @@ npm run build
 **microCMS連携の初回設定**
 
 1. GitHubの `Settings → Secrets and variables → Actions` に `MICROCMS_API_KEY`（GET権限のAPIキー）を登録
-2. microCMSの `API設定 → Webhook` で「GitHub Actions」を追加し、トリガーイベント名を `microcms-update` に設定（公開時に自動ビルド）
+2. microCMSで内容を更新したら、`Actions → Publish Astro site → Run workflow` を手動実行してサイトに反映
 
 ## 資料確認
 

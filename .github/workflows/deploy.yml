@@ -4,9 +4,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # Triggered by the microCMS webhook ("GitHub Actions" type) when content is published.
-  repository_dispatch:
-    types: [microcms-update]
 
 permissions:
   contents: read
