@@ -41,7 +41,6 @@ const timeline = [...(horse.races || [])].sort((a,b) => Number(a.slice(0,4)) - N
         <div class="detail-lead">
           <div class="portrait detail-page-photo" id="portrait" data-photo={horse.name}>
             <span aria-hidden="true">♞</span>
-            <small>写真が見つかった場合に表示</small>
           </div>
           <div>
             <div class="tiny">{horse.group === 'book' ? '歴代名馬' : '2023–2026 活躍馬'}　/　{horse.era}</div>
