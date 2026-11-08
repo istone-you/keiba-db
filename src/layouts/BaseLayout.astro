@@ -5,6 +5,7 @@ import { basePath } from '../lib/horses.js';
 const {
   title = 'UMA ATLAS | 競走馬図鑑',
   description = '競走馬157頭の戦績・血統・個性をたどる競走馬データベース。',
+  showFooter = true,
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site || 'https://istone-you.github.io').href;
 ---
@@ -29,8 +30,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site || 'https://istone-you.
       </div>
     </header>
     <slot />
-    <footer class="footer">
+    {showFooter && <footer class="footer">
       <div class="wrap"><div><b>UMA ATLAS</b> · 競走馬の歴史と現在を知るための個人図鑑</div><div>2026年11月8日版。</div></div>
-    </footer>
+    </footer>}
   </body>
 </html>
