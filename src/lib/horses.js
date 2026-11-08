@@ -1,5 +1,5 @@
 import { fetchAll } from './microcms.js';
-import { fetchWikipediaPhotos } from './photos.js';
+import { fetchWikipedia } from './photos.js';
 
 const first = (v) => (Array.isArray(v) ? v[0] : v) || null;
 
@@ -34,6 +34,7 @@ function normalize(raw, index) {
       trainer: prof.trainer || null,
       record: prof.record || null,
       source: prof.source || null,
+      netkeibaId: prof.netkeibaId || null,
     },
     rivalLinks: (raw.rivals || []).map((r) => ({ id: r.horse?.id, note: r.note || '' })).filter((r) => r.id),
     cmsImage: raw.image?.url ? { url: raw.image.url, width: raw.image.width, height: raw.image.height } : null,
@@ -47,7 +48,7 @@ const byName = new Map(list.map((h) => [h.name, h]));
 
 const resolve = (id, name) => (id && byId.get(id)) || (name && byName.get(name)) || null;
 
-const photos = await fetchWikipediaPhotos(list.filter((h) => !h.cmsImage).map((h) => h.name));
+const wiki = await fetchWikipedia(list.map((h) => h.name));
 
 // e.g. 全兄 / 半妹: how `other` relates to `self` (same dam; 全 when the sire matches too).
 function siblingLabel(self, other) {
@@ -84,9 +85,11 @@ for (const h of list) {
     ? list.filter((o) => o !== h && o.pedigree.dam === h.pedigree.dam)
         .map((o) => ({ horse: o, label: siblingLabel(h, o) }))
     : [];
+  const article = wiki.get(h.name);
+  h.wikiTitle = article?.title || h.name;
   h.photo = h.cmsImage
     ? { ...h.cmsImage, url: h.cmsImage.url + '?w=640&fm=webp', source: 'cms' }
-    : photos.has(h.name) ? { ...photos.get(h.name), source: 'wikipedia' } : null;
+    : article?.photo ? { ...article.photo, source: 'wikipedia' } : null;
   h.latestYear = Math.max(0, ...h.races.map((r) => r.year || 0));
 }
 
@@ -120,5 +123,6 @@ export const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env
 export const horseHref = (horse) => basePath + 'horse/' + horse.id + '/';
 export const raceHref = (race) => basePath + 'races/' + race.id + '/';
 export const racesHref = basePath + 'races/';
+export const netkeibaHref = (id) => 'https://db.netkeiba.com/horse/' + encodeURIComponent(id) + '/';
 export const wikiHref = (name) => 'https://ja.wikipedia.org/wiki/' + encodeURIComponent(name);
 export const jbisSearchHref = (name) => 'https://www.google.com/search?q=' + encodeURIComponent(name + ' 競走馬 site:jbis.or.jp/horse/');

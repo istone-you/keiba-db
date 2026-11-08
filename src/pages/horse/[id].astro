@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import HorseCard from '../../components/HorseCard.astro';
 import HorsePhoto from '../../components/HorsePhoto.astro';
-import { horses, horseHref, raceHref, basePath, wikiHref, jbisSearchHref, groupLabel } from '../../lib/horses.js';
+import { horses, horseHref, raceHref, basePath, wikiHref, netkeibaHref, jbisSearchHref, groupLabel } from '../../lib/horses.js';
 
 export function getStaticPaths() {
   return horses.map((horse) => ({ params: { id: horse.id }, props: { horse } }));
@@ -135,7 +135,8 @@ const bestRace = (h) => h.races.at(-1) ? `${h.races.at(-1).year} ${h.races.at(-1
           <h2>詳しく調べる</h2>
           <div class="links">
             <a href={prof.source || jbisSearchHref(horse.name)} target="_blank" rel="noopener noreferrer">{prof.source ? 'JBIS馬情報' : 'JBISで探す'} ↗</a>
-            <a href={wikiHref(horse.name)} target="_blank" rel="noopener noreferrer">Wikipedia ↗</a>
+            {prof.netkeibaId && <a href={netkeibaHref(prof.netkeibaId)} target="_blank" rel="noopener noreferrer">netkeiba ↗</a>}
+            <a href={wikiHref(horse.wikiTitle)} target="_blank" rel="noopener noreferrer">Wikipedia ↗</a>
             <a href="https://www.jra.go.jp/" target="_blank" rel="noopener noreferrer">JRA公式 ↗</a>
           </div>
         </section>
