@@ -35,7 +35,7 @@ function normalize(raw, index) {
       record: prof.record || null,
       source: prof.source || null,
     },
-    relatedIds: (raw.related || []).map((r) => r.id).filter(Boolean),
+    rivalLinks: (raw.rivals || []).map((r) => ({ id: r.horse?.id, note: r.note || '' })).filter((r) => r.id),
     cmsImage: raw.image?.url ? { url: raw.image.url, width: raw.image.width, height: raw.image.height } : null,
   };
 }
@@ -49,16 +49,41 @@ const resolve = (id, name) => (id && byId.get(id)) || (name && byName.get(name))
 
 const photos = await fetchWikipediaPhotos(list.filter((h) => !h.cmsImage).map((h) => h.name));
 
-const offspring = new Map(list.map((h) => [h.id, { asSire: [], asDam: [] }]));
+// e.g. 全兄 / 半妹: how `other` relates to `self` (same dam; 全 when the sire matches too).
+function siblingLabel(self, other) {
+  const full = other.pedigree.sire && other.pedigree.sire === self.pedigree.sire ? '全' : '半';
+  const older = (other.profile.birth ?? 0) < (self.profile.birth ?? 0);
+  const male = other.profile.sex !== '牝';
+  return full + (older ? (male ? '兄' : '姉') : (male ? '弟' : '妹'));
+}
+
+const rivals = new Map(list.map((h) => [h.id, []]));
+for (const h of list) {
+  for (const { id, note } of h.rivalLinks) {
+    const other = byId.get(id);
+    if (!other || other === h) continue;
+    rivals.get(h.id).push({ horse: other, note });
+    rivals.get(other.id).push({ horse: h, note });
+  }
+}
+
+const offspring = new Map(list.map((h) => [h.id, { asSire: [], asDam: [], asDamSire: [] }]));
 for (const h of list) {
   h.sireHorse = resolve(h.pedigree.sireId, h.pedigree.sire);
   h.damHorse = resolve(h.pedigree.damId, h.pedigree.dam);
+  h.damSireHorse = resolve(null, h.pedigree.damSire);
   if (h.sireHorse) offspring.get(h.sireHorse.id).asSire.push(h);
   if (h.damHorse) offspring.get(h.damHorse.id).asDam.push(h);
+  if (h.damSireHorse) offspring.get(h.damSireHorse.id).asDamSire.push(h);
 }
 for (const h of list) {
   h.offspring = offspring.get(h.id);
-  h.related = h.relatedIds.map((id) => byId.get(id)).filter(Boolean);
+  h.rivals = rivals.get(h.id).sort((a, b) => a.horse.index - b.horse.index);
+  // Siblings are derived: same dam (全兄弟 when the sire matches too).
+  h.siblings = h.pedigree.dam
+    ? list.filter((o) => o !== h && o.pedigree.dam === h.pedigree.dam)
+        .map((o) => ({ horse: o, label: siblingLabel(h, o) }))
+    : [];
   h.photo = h.cmsImage
     ? { ...h.cmsImage, url: h.cmsImage.url + '?w=640&fm=webp', source: 'cms' }
     : photos.has(h.name) ? { ...photos.get(h.name), source: 'wikipedia' } : null;

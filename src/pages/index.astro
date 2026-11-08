@@ -9,7 +9,7 @@ const searchBlob = (h) => [
   ...h.races.map((r) => r.title),
   h.pedigree.sire, h.pedigree.dam, h.pedigree.damSire,
   h.profile.trainer, h.profile.coat,
-  ...h.related.map((r) => r.name),
+  ...h.rivals.map((r) => r.horse.name),
 ].filter(Boolean).join(' ').normalize('NFKC').toLowerCase();
 ---
 <BaseLayout

@@ -24,14 +24,15 @@ const facts = [
 const pedigreeRows = [
   ['父', ped.sire, horse.sireHorse],
   ['母', ped.dam, horse.damHorse],
-  ['母父', ped.damSire, null],
+  ['母父', ped.damSire, horse.damSireHorse],
 ].filter(([, name]) => name);
 
 const offspringGroups = [
   ['父として', offspring.asSire],
   ['母として', offspring.asDam],
+  ['母父として', offspring.asDamSire],
 ].filter(([, list]) => list.length);
-const offspringCount = offspring.asSire.length + offspring.asDam.length;
+const offspringCount = offspring.asSire.length + offspring.asDam.length + offspring.asDamSire.length;
 const bestRace = (h) => h.races.at(-1) ? `${h.races.at(-1).year} ${h.races.at(-1).title}` : '';
 ---
 <BaseLayout
@@ -40,10 +41,6 @@ const bestRace = (h) => h.races.at(-1) ? `${h.races.at(-1).year} ${h.races.at(-1
   image={horse.photo?.url}
 >
   <main class="wrap detail">
-    <nav class="breadcrumb" aria-label="パンくずリスト">
-      <a href={basePath} data-back-link>← 競走馬一覧</a>
-    </nav>
-
     <header class="detail-hero">
       <HorsePhoto horse={horse} eager size="hero" />
       <div class="detail-heading">
@@ -92,11 +89,20 @@ const bestRace = (h) => h.races.at(-1) ? `${h.races.at(-1).year} ${h.races.at(-1
           </section>
         )}
 
-        {horse.related.length > 0 && (
+        {horse.rivals.length > 0 && (
           <section class="panel">
-            <h2>関係の深い競走馬</h2>
+            <h2>ライバル</h2>
             <div class="grid grid-compact">
-              {horse.related.map((other) => <HorseCard horse={other} compact />)}
+              {horse.rivals.map(({ horse: other, note }) => <HorseCard horse={other} compact caption={note} />)}
+            </div>
+          </section>
+        )}
+
+        {horse.siblings.length > 0 && (
+          <section class="panel">
+            <h2>兄弟・姉妹<small class="panel-sub">母 {ped.dam}</small></h2>
+            <div class="grid grid-compact">
+              {horse.siblings.map(({ horse: other, label }) => <HorseCard horse={other} compact note={label} />)}
             </div>
           </section>
         )}
@@ -140,6 +146,9 @@ const bestRace = (h) => h.races.at(-1) ? `${h.races.at(-1).year} ${h.races.at(-1
   <nav class="pager" aria-label="前後の競走馬" id="pager" data-id={horse.id}>
     <a href={prev ? horseHref(prev) : undefined} aria-disabled={prev ? undefined : 'true'} data-dir="prev">
       <small>← 前の馬</small><span>{prev?.name || '先頭の馬'}</span>
+    </a>
+    <a href={basePath} class="pager-home" data-back-link aria-label="競走馬一覧に戻る">
+      <small aria-hidden="true">☰</small><span>一覧</span>
     </a>
     <a href={next ? horseHref(next) : undefined} aria-disabled={next ? undefined : 'true'} data-dir="next">
       <small>次の馬 →</small><span>{next?.name || '末尾の馬'}</span>
