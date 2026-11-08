@@ -1,32 +1,51 @@
-# UMA ATLAS — 競走馬図鑑
+# UMA ATLAS — 競走馬図鑑（Astro SSG）
 
-[公開サイト](https://istone-you.github.io/keiba-db/)
+公式公開URL（GitHub Pages）：https://istone-you.github.io/keiba-db/
 
-歴代名馬92頭と2023年以降の活躍馬65頭、**全157頭**の情報を読むための静的な図鑑サイトです。2026年11月8日時点での内容です。
+日本競馬の歴代名馬と2023年以降の活躍馬をまとめた **全157頭の静的サイト** です。AstroでHTMLをビルド時に生成します。表示内容は2026年11月8日時点の整理情報です。
 
-## 掲載内容
-- 全157頭の独自解説（競走史・印象的なエピソード）
-- 全157頭の主な勝ち鞍・代表レース（合計398件、抜粋）
-- 確認できた48頭の血統・プロフィール（項目により未掲載あり）
-- 関連する馬へのリンク（ライバル・親子・きょうだい等）
-- 外部のJBISサーチ・Wikipedia・JRAへの参考リンク
-- 馬名、レース名、血統・特徴での検索と年代による絞り込み
+## サイト構成
 
-**クイズ、暗記済みチェック、お気に入りなどの学習用機能は撤去**し、情報を読める図鑑として再構成しました。
+- `src/pages/index.astro` — 全馬一覧、馬名・勝ち鞍・血統・特徴の検索、並べ替え
+- `src/pages/horse/[id].astro` — 各馬の個別静的HTML（`/horse/001/` ～ `/horse/157/`）
+- `src/lib/horses.js` — `data.json` の読み込みとURL生成
+- `src/layouts/BaseLayout.astro` — 共通ヘッダー・フッター
+- `src/styles/global.css` — スタイル
+- `data.json` — 全157頭の解説・代表レース・血統などのデータ
+- `.github/workflows/deploy.yml` — GitHub Actionsによるビルド・公開
+- `index.html` — 旧版の予備ファイル。**Astroのビルド成果物には使いません。** Pagesの切り替え前でも旧サイトを維持するために残しています。
 
-## ファイル構成
-- `index.html` — 表示・検索・個別解説のWebサイト（外部フレームワーク不要）
-- `data.json` — 157頭の情報。各馬の `name` / `desc` / `story` / `races` / `profile` / `related` など
-- `README.md` — この説明
+独立した個別ページはビルド時に生成され、JavaScriptがなくても文章を読めます。検索と並べ替え、Wikipediaの写真取得のみクライアントで行います。写真は一部の馬で表示できない場合があります。
 
-`data.json`を変更すると表示に反映されます。ローカルで確認するときは `python -m http.server 8000` などで起動してください。ブラウザから `index.html` を直接開く場合、ローカルファイルの読み込み制限によりデータを取得できないことがあります。
+※馬の識別番号は `data.json` の配列順です。既存の馬を並べ替えると個別URLが変化します。追加する場合は原則として末尾に追加してください。
 
-## 補足と出典
-- [JBISサーチ](https://www.jbis.or.jp/) — 全出走歴・血統・競走成績などの参照
-- [JRA公式](https://www.jra.go.jp/) — 国内の重賞・GI結果、公式情報
-- [Wikipedia](https://ja.wikipedia.org/) — 馬の来歴・写真などの追加参考
+## ローカル開発
 
-このサイトの代表レースは**全戦績ではなく抜粋**です。海外・障害・地方重賞の格付けは平地中央GIと異なる場合があります。確認できない生年、毛色、血統、成績は無理に補完していません。個別の詳細や最新の戦績については必ず出典で再確認してください。写真は取得可能な場合に限り外部から読み込みます。
+Node.js 24以降を使用してください。
 
-## 公開手順
-GitHubの **Settings → Pages → Deploy from a branch → main / (root)** から公開できます。
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
+```
+
+ローカル開発の入口は `http://localhost:4321/keiba-db/` です。ビルド成果物は `dist/` に生成されます。
+
+## GitHub Pagesへのデプロイ
+
+**初回のみ必須：GitHubの `Settings → Pages → Build and deployment → Source` を `GitHub Actions` に変更してください。**
+
+従来の `Deploy from a branch` から切り替えないと、Astroの生成サイトは公開されません。次に `Actions → Publish Astro site → Run workflow` で再実行するか、`main` にコミットを追加するとビルド・公開されます。
+
+以降は `main` ブランチへのプッシュで、157頭のHTMLが自動再生成されます。
+
+## 資料確認
+
+個々の記録は以下の情報も参照して再確認してください。
+
+- [JBISサーチ](https://www.jbis.or.jp/) — 血統と全競走成績
+- [JRA](https://www.jra.go.jp/) — 国内の競走結果
+- [Wikipedia](https://ja.wikipedia.org/) — 補助的な経歴情報と写真
+
+主要レースは全成績ではなく抜粋です。最新の成績が自動更新される仕組みではありません。
