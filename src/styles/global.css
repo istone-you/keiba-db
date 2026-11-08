@@ -41,6 +41,8 @@ img { display: block; max-width: 100%; }
 .header-inner { display: flex; align-items: center; justify-content: space-between; height: 56px; }
 .logo { display: flex; gap: 8px; align-items: center; font-weight: 800; letter-spacing: .08em; text-decoration: none; }
 .logo span { color: #e2c48e; font-size: 20px; }
+.site-header nav a { font-size: 13px; font-weight: 700; text-decoration: none; opacity: .85; }
+.site-header nav a:hover { opacity: 1; }
 .site-footer { margin-top: 64px; padding: 28px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 
 /* Hero */
@@ -144,6 +146,28 @@ img { display: block; max-width: 100%; }
 .links { display: flex; flex-wrap: wrap; gap: 8px; }
 .links a { padding: 6px 11px; font-size: 13px; text-decoration: none; color: #28553b; background: var(--white); border: 1px solid #bfd3c6; border-radius: 8px; }
 .links a:hover { background: #e9f3eb; }
+
+/* G1 races */
+.races-page { padding-top: 28px; }
+.page-head { margin-bottom: 24px; }
+.page-head h1 { margin: 4px 0 6px; font-size: clamp(28px, 4.5vw, 40px); line-height: 1.3; }
+.eyebrow-dark { margin: 0; font-size: 12px; letter-spacing: .08em; color: var(--muted); }
+.eyebrow-dark a { color: var(--green-2); font-weight: 700; text-decoration: none; }
+.race-facts { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); margin-top: 16px; max-width: 640px; }
+.race-group + .race-group { margin-top: 32px; }
+.race-group h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; font-size: 20px; }
+.race-group h2 small { font-size: 12px; font-weight: 400; color: var(--muted); }
+.race-subgroup + .race-subgroup { margin-top: 16px; }
+.race-subgroup h3 { margin: 0 0 8px; font-size: 13px; color: var(--green-2); }
+.race-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+.race-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "grade name count" "grade meta count"; column-gap: 12px; align-items: center; padding: 10px 14px; background: var(--white); border: 1px solid var(--line); border-radius: 10px; text-decoration: none; }
+.race-item:hover { background: #f1f6f2; }
+.race-grade { grid-area: grade; font-size: 11px; font-weight: 800; color: #fff; background: var(--green-2); padding: 2px 7px; border-radius: 5px; }
+.race-name { grid-area: name; font-weight: 800; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.race-meta { grid-area: meta; font-size: 11px; color: var(--muted); }
+.race-count { grid-area: count; font-size: 12px; color: var(--muted); }
+.timeline a { color: inherit; text-decoration-color: #9fbcab; text-underline-offset: 3px; }
+.timeline a:hover { color: var(--green-2); }
 
 /* Prev / next */
 .pager {

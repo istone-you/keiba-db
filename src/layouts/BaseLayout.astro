@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { basePath } from '../lib/horses.js';
+import { basePath, racesHref } from '../lib/horses.js';
 
 const {
   title = 'UMA ATLAS | 競走馬図鑑',
@@ -27,6 +27,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <header class="site-header">
       <div class="wrap header-inner">
         <a class="logo" href={basePath}><span aria-hidden="true">♞</span>UMA ATLAS</a>
+        <nav aria-label="メインメニュー"><a href={racesHref}>G1レース</a></nav>
       </div>
     </header>
     <slot />

@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { races, raceHref } from '../../lib/horses.js';
+
+const groups = ['国内', '海外']
+  .map((region) => ({ region, list: races.filter((r) => r.region === region) }))
+  .filter((g) => g.list.length);
+// Overseas races are grouped by country so the list stays scannable.
+const byCountry = (list) => {
+  const m = new Map();
+  for (const r of list) {
+    const key = r.country || 'その他';
+    if (!m.has(key)) m.set(key, []);
+    m.get(key).push(r);
+  }
+  return [...m];
+};
+---
+<BaseLayout
+  title="G1レース一覧 | UMA ATLAS"
+  description={`国内外のG1レース${races.length}競走と、この図鑑に収録された勝ち馬の一覧。`}
+>
+  <main class="wrap races-page">
+    <header class="page-head">
+      <p class="eyebrow-dark">G1 RACES</p>
+      <h1>G1レース</h1>
+      <p class="muted">レースごとに、この図鑑に収録されている勝ち馬をまとめています。</p>
+    </header>
+
+    {groups.map(({ region, list }) => (
+      <section class="race-group">
+        <h2>{region}<small>{list.length}競走</small></h2>
+        {(region === '国内' ? [['', list]] : byCountry(list)).map(([country, items]) => (
+          <div class="race-subgroup">
+            {country && <h3>{country}</h3>}
+            <ul class="race-list">
+              {items.map((r) => (
+                <li>
+                  <a href={raceHref(r)} class="race-item">
+                    <span class="race-grade">{r.grade}</span>
+                    <span class="race-name">{r.name}</span>
+                    <span class="race-meta">{[r.venue, r.course].filter(Boolean).join(' ')}</span>
+                    <span class="race-count">{r.winners.length}頭</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+    ))}
+  </main>
+</BaseLayout>

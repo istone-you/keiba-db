@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import HorseCard from '../../components/HorseCard.astro';
 import HorsePhoto from '../../components/HorsePhoto.astro';
-import { horses, horseHref, basePath, wikiHref, jbisSearchHref, groupLabel } from '../../lib/horses.js';
+import { horses, horseHref, raceHref, basePath, wikiHref, jbisSearchHref, groupLabel } from '../../lib/horses.js';
 
 export function getStaticPaths() {
   return horses.map((horse) => ({ params: { id: horse.id }, props: { horse } }));
@@ -69,7 +69,7 @@ const bestRace = (h) => h.races.at(-1) ? `${h.races.at(-1).year} ${h.races.at(-1
         <section class="panel">
           <h2>主な勝ち鞍・代表レース</h2>
           <ol class="timeline">
-            {horse.races.map((r) => <li><time>{r.year ?? '—'}</time><span>{r.title}</span></li>)}
+            {horse.races.map((r) => <li><time>{r.year ?? '—'}</time><span>{r.race ? <a href={raceHref(r.race)}>{r.title}</a> : r.title}</span></li>)}
           </ol>
           <p class="caution">代表レースの抜粋です。全出走歴・全GI勝利数を表すものではありません。</p>
         </section>

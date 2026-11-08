@@ -1,4 +1,4 @@
-import { fetchAllHorses } from './microcms.js';
+import { fetchAll } from './microcms.js';
 import { fetchWikipediaPhotos } from './photos.js';
 
 const first = (v) => (Array.isArray(v) ? v[0] : v) || null;
@@ -17,7 +17,7 @@ function normalize(raw, index) {
     story: raw.story || '',
     year: raw.year ?? null,
     races: (raw.races || [])
-      .map((r) => ({ year: Number(r.year) || null, title: r.title || '' }))
+      .map((r) => ({ year: Number(r.year) || null, title: r.title || '', raceId: r.raceRef?.id || null }))
       .sort((a, b) => (a.year ?? 0) - (b.year ?? 0)),
     pedigree: {
       sire: ped.sire || null,
@@ -40,7 +40,7 @@ function normalize(raw, index) {
   };
 }
 
-const raw = await fetchAllHorses();
+const [raw, rawRaces] = await Promise.all([fetchAll('horses'), fetchAll('races')]);
 const list = raw.map(normalize);
 const byId = new Map(list.map((h) => [h.id, h]));
 const byName = new Map(list.map((h) => [h.name, h]));
@@ -90,10 +90,35 @@ for (const h of list) {
   h.latestYear = Math.max(0, ...h.races.map((r) => r.year || 0));
 }
 
+// G1 races with the collected horses that won them.
+const raceList = rawRaces.map((r, index) => ({
+  id: r.id,
+  index,
+  name: r.name,
+  grade: first(r.grade) || 'G1',
+  region: first(r.region) || '国内',
+  country: r.country || '',
+  venue: r.venue || '',
+  course: r.course || '',
+  description: r.description || '',
+  winners: [],
+}));
+const raceById = new Map(raceList.map((r) => [r.id, r]));
+for (const h of list) {
+  for (const r of h.races) {
+    r.race = (r.raceId && raceById.get(r.raceId)) || null;
+    if (r.race) r.race.winners.push({ horse: h, year: r.year, title: r.title });
+  }
+}
+for (const r of raceList) r.winners.sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.horse.index - b.horse.index);
+
 export const horses = list;
+export const races = raceList;
 export const groupLabel = { book: '歴代名馬', new: '2023年以降の活躍馬' };
 
 export const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 export const horseHref = (horse) => basePath + 'horse/' + horse.id + '/';
+export const raceHref = (race) => basePath + 'races/' + race.id + '/';
+export const racesHref = basePath + 'races/';
 export const wikiHref = (name) => 'https://ja.wikipedia.org/wiki/' + encodeURIComponent(name);
 export const jbisSearchHref = (name) => 'https://www.google.com/search?q=' + encodeURIComponent(name + ' 競走馬 site:jbis.or.jp/horse/');

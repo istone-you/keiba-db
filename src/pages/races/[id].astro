@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HorseCard from '../../components/HorseCard.astro';
+import { races, racesHref } from '../../lib/horses.js';
+
+export function getStaticPaths() {
+  return races.map((race) => ({ params: { id: race.id }, props: { race } }));
+}
+
+const { race } = Astro.props;
+const facts = [
+  ['格付け', race.grade],
+  ['開催国', race.country],
+  ['競馬場', race.venue],
+  ['コース', race.course],
+].filter(([, v]) => v);
+---
+<BaseLayout
+  title={`${race.name}の勝ち馬 | UMA ATLAS`}
+  description={`${race.name}（${race.grade}）。${race.description} この図鑑に収録されている勝ち馬${race.winners.length}頭。`}
+>
+  <main class="wrap races-page">
+    <header class="page-head">
+      <p class="eyebrow-dark"><a href={racesHref}>G1レース</a> / {race.region}</p>
+      <h1>{race.name}</h1>
+      {race.description && <p class="detail-desc">{race.description}</p>}
+      {facts.length > 0 && (
+        <dl class="facts race-facts">{facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+      )}
+    </header>
+
+    <section class="panel">
+      <h2>収録馬の勝利<small class="panel-sub">{race.winners.length}件・新しい順</small></h2>
+      <div class="grid grid-compact">
+        {race.winners.map(({ horse, year }) => (
+          <HorseCard horse={horse} compact note={`${year}年`} />
+        ))}
+      </div>
+      <p class="caution">この図鑑に収録されている馬の勝利のみを掲載しています。歴代の全勝ち馬ではありません。</p>
+    </section>
+  </main>
+</BaseLayout>
