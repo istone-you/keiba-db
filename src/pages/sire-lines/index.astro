@@ -1,22 +1,27 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SireTree from '../../components/SireTree.astro';
-import { sireLines, horseHref } from '../../lib/horses.js';
+import { sireLines, damLines, horseHref } from '../../lib/horses.js';
 
 // Lines with two or more collected descendants get a tree; single links are listed compactly.
 const trees = sireLines.filter((l) => l.size >= 2);
 const singles = sireLines.filter((l) => l.size < 2);
+// Maternal families: only those with two or more collected horses.
+const families = damLines.filter((l) => l.size >= 2);
 ---
 <BaseLayout
-  title="血統・父系 | UMA ATLAS"
+  title="血統 | UMA ATLAS"
   description="収録馬の父系を樹形図でたどる。サンデーサイレンスからディープインパクト、コントレイルへと続く血のつながり。"
 >
   <main class="wrap races-page">
     <header class="page-head">
       <p class="eyebrow-dark">SIRE LINES</p>
-      <h1>血統・父系</h1>
-      <p class="muted crown-intro">父から子へと続く血のつながりを、この図鑑の収録馬でたどります。灰色の名前は図鑑に収録されていない種牡馬です。</p>
+      <h1>血統</h1>
+      <p class="muted crown-intro">父から子へと続く血のつながりを、この図鑑の収録馬でたどります。灰色の名前は図鑑に収録されていない種牡馬・繁殖牝馬です。</p>
+      <nav class="page-tabs" aria-label="このページの項目"><a href="#sire">父系</a><a href="#dam">母系</a></nav>
     </header>
+
+    <h2 class="section-title" id="sire">父系</h2>
 
     <div class="tree-grid">
       {trees.map((line) => (
@@ -39,5 +44,18 @@ const singles = sireLines.filter((l) => l.size < 2);
         </ul>
       </section>
     )}
+
+    <h2 class="section-title" id="dam">母系</h2>
+    <p class="muted">母から娘へと続く一族のうち、この図鑑の収録馬が2頭以上いるものです。</p>
+    <div class="tree-grid" style="margin-top: 12px">
+      {families.map((line) => (
+        <section class="panel">
+          <h2>{line.name}の一族<small class="panel-sub">収録 {line.size}頭</small></h2>
+          <ul class="tree">
+            <SireTree node={line} />
+          </ul>
+        </section>
+      ))}
+    </div>
   </main>
 </BaseLayout>

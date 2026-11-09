@@ -1,5 +1,6 @@
-// For sires that are not collected horses, look up their own sire on Japanese Wikipedia at
-// build time so sire lines connect (e.g. サンデーサイレンス → ブラックタイド → キタサンブラック).
+// For sires / dams that are not collected horses, look up their own sire / dam on Japanese
+// Wikipedia at build time so lines connect (e.g. サンデーサイレンス → ブラックタイド → キタサンブラック,
+// エアグルーヴ → アドマイヤグルーヴ → ドゥラメンテ).
 const ENDPOINT = 'https://ja.wikipedia.org/w/api.php';
 const MAX_DEPTH = 1; // only the direct sires of collected horses
 
@@ -25,11 +26,11 @@ async function fetchWikitext(titles) {
 }
 
 // "| 父 = [[ブラックタイド]]<ref…>" → "ブラックタイド", only from a 競走馬 infobox naming this horse.
-function sireFromInfobox(text, name) {
+function parentFromInfobox(text, name, field) {
   if (!text.includes('{{競走馬')) return null;
   const named = text.match(/\|\s*名\s*=\s*([^\n|]+)/);
   if (named && !named[1].replace(/[（(].*?[）)]/g, '').includes(name)) return null;
-  const m = text.match(/\|\s*父\s*=\s*([^\n]+)/);
+  const m = text.match(new RegExp(`\\|\\s*${field}\\s*=\\s*([^\\n]+)`));
   if (!m) return null;
   const v = m[1].replace(/<ref[^>]*\/>|<ref.*?<\/ref>/g, '').replace(/\{\{[^{}]*\}\}/g, '');
   const link = v.match(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/);
@@ -37,8 +38,8 @@ function sireFromInfobox(text, name) {
   return sire || null;
 }
 
-/** @returns Map<sireName, itsSireName> for names that are not collected horses. */
-export async function fetchSireParents(startNames, collectedNames) {
+/** @returns Map<name, its parent's name> (field '父' = sire, '母' = dam) for names that are not collected horses. */
+export async function fetchParents(startNames, collectedNames, field = '父') {
   const parents = new Map();
   if (process.env.SKIP_WIKIPEDIA_PHOTOS) return parents;
   let frontier = [...new Set(startNames)].filter((n) => !collectedNames.has(n));
@@ -50,7 +51,7 @@ export async function fetchSireParents(startNames, collectedNames) {
       try {
         const texts = await fetchWikitext(chunk.flatMap((n) => [`${n} (競走馬)`, n]));
         for (const name of chunk) {
-          const sire = sireFromInfobox(texts.get(`${name} (競走馬)`) || '', name) || sireFromInfobox(texts.get(name) || '', name);
+          const sire = parentFromInfobox(texts.get(`${name} (競走馬)`) || '', name, field) || parentFromInfobox(texts.get(name) || '', name, field);
           if (!sire || sire === name) continue;
           parents.set(name, sire);
           if (!collectedNames.has(sire) && !seen.has(sire)) { seen.add(sire); next.push(sire); }

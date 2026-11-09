@@ -1,6 +1,6 @@
 import { fetchAll } from './microcms.js';
 import { fetchWikipedia } from './photos.js';
-import { fetchSireParents } from './sires.js';
+import { fetchParents } from './sires.js';
 
 const first = (v) => (Array.isArray(v) ? v[0] : v) || null;
 
@@ -159,34 +159,38 @@ export const overseasWins = list
   .flatMap((h) => h.races.filter((r) => r.race?.region === '海外').map((r) => ({ year: r.year, horse: h, race: r.race, title: r.title })))
   .sort((a, b) => a.year - b.year || a.horse.index - b.horse.index);
 
-// Sire lines: a tree of sire names (collected or not) down to collected horses.
-// Names in the tree: collected horses plus the sires of collected horses. A non-collected
-// sire is linked to its own sire only when that sire is already in the tree.
-const treeNames = new Set([...list.map((h) => h.name), ...list.map((h) => h.pedigree.sire).filter(Boolean)]);
-const sireParents = await fetchSireParents([...treeNames].filter((n) => !byName.has(n)), new Set(byName.keys()));
-const parentOf = (name) => {
-  const p = byName.get(name)?.pedigree.sire || sireParents.get(name) || null;
-  return p && treeNames.has(p) && p !== name ? p : null;
-};
-const childrenOf = new Map();
-for (const name of treeNames) {
-  const p = parentOf(name);
-  if (!p) continue;
-  if (!childrenOf.has(p)) childrenOf.set(p, []);
-  childrenOf.get(p).push(name);
-}
+// Sire and dam lines: trees of names (collected or not) down to collected horses.
+// Names in a tree: collected horses plus their sires (or dams). A non-collected name is linked to
+// its own sire (dam) — looked up on Wikipedia — only when that parent is already in the tree.
 const birthOf = (name) => byName.get(name)?.profile.birth ?? 0;
-function lineNode(name, seen = new Set()) {
-  seen.add(name);
-  const kids = (childrenOf.get(name) || []).filter((k) => !seen.has(k)).sort((a, b) => birthOf(a) - birthOf(b) || a.localeCompare(b, 'ja'));
-  const children = kids.map((k) => lineNode(k, seen));
-  const size = children.reduce((n, c) => n + (c.horse ? 1 : 0) + c.size, 0);
-  return { name, horse: byName.get(name) || null, children, size };
+async function buildLines(key, field) {
+  const names = new Set([...list.map((h) => h.name), ...list.map((h) => h.pedigree[key]).filter(Boolean)]);
+  const fetched = await fetchParents([...names].filter((n) => !byName.has(n)), new Set(byName.keys()), field);
+  const parentOf = (name) => {
+    const p = byName.get(name)?.pedigree[key] || fetched.get(name) || null;
+    return p && names.has(p) && p !== name ? p : null;
+  };
+  const childrenOf = new Map();
+  for (const name of names) {
+    const p = parentOf(name);
+    if (!p) continue;
+    if (!childrenOf.has(p)) childrenOf.set(p, []);
+    childrenOf.get(p).push(name);
+  }
+  const node = (name, seen) => {
+    seen.add(name);
+    const kids = (childrenOf.get(name) || []).filter((k) => !seen.has(k)).sort((a, b) => birthOf(a) - birthOf(b) || a.localeCompare(b, 'ja'));
+    const children = kids.map((k) => node(k, seen));
+    const size = children.reduce((n, c) => n + (c.horse ? 1 : 0) + c.size, 0);
+    return { name, horse: byName.get(name) || null, children, size };
+  };
+  return [...names]
+    .filter((name) => !parentOf(name) && childrenOf.has(name))
+    .map((name) => node(name, new Set()))
+    .sort((a, b) => b.size - a.size || a.name.localeCompare(b.name, 'ja'));
 }
-export const sireLines = [...treeNames]
-  .filter((name) => !parentOf(name) && childrenOf.has(name))
-  .map((name) => lineNode(name))
-  .sort((a, b) => b.size - a.size || a.name.localeCompare(b.name, 'ja'));
+export const sireLines = await buildLines('sire', '父');
+export const damLines = await buildLines('dam', '母');
 
 export const horses = list;
 export const races = raceList;
