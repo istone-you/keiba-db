@@ -1,0 +1,20 @@
+---
+// One node of a sire line: the sire's name (linked when collected) and its collected offspring.
+import { horseHref } from '../lib/horses.js';
+
+const { node } = Astro.props;
+---
+<li>
+  <div class="tree-node">
+    {node.horse
+      ? <a href={horseHref(node.horse)}>{node.name}</a>
+      : <span class="tree-uncollected">{node.name}</span>}
+    {node.horse?.profile.birth && <small>{node.horse.profile.birth}年生</small>}
+    {node.horse?.horseOfYear.length > 0 && <small class="tree-tag">年度代表馬</small>}
+  </div>
+  {node.children.length > 0 && (
+    <ul>
+      {node.children.map((child) => <Astro.self node={child} />)}
+    </ul>
+  )}
+</li>

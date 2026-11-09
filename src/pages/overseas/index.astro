@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { overseasWins, horseHref, raceHref } from '../../lib/horses.js';
+
+const byCountry = new Map();
+for (const w of overseasWins) byCountry.set(w.race.country, (byCountry.get(w.race.country) || 0) + 1);
+const countries = [...byCountry].sort((a, b) => b[1] - a[1]);
+const newestFirst = [...overseasWins].reverse();
+---
+<BaseLayout
+  title="海外遠征 | UMA ATLAS"
+  description={`収録馬が海外で挙げたG1勝利${overseasWins.length}件。香港、ドバイ、欧州、豪州、米国での挑戦の記録。`}
+>
+  <main class="wrap races-page">
+    <header class="page-head">
+      <p class="eyebrow-dark">OVERSEAS</p>
+      <h1>海外遠征</h1>
+      <p class="muted crown-intro">この図鑑の収録馬が海外で勝ったG1レースの記録です。</p>
+      <ul class="country-tally">
+        {countries.map(([country, n]) => <li><b>{n}</b>{country}</li>)}
+      </ul>
+    </header>
+
+    <section class="panel">
+      <h2>海外G1勝利<small class="panel-sub">{overseasWins.length}件・新しい順</small></h2>
+      <ol class="overseas-list">
+        {newestFirst.map((w) => (
+          <li>
+            <time>{w.year}</time>
+            <a class="ov-horse" href={horseHref(w.horse)}>{w.horse.name}</a>
+            <a class="ov-race" href={raceHref(w.race)}>{w.race.name}</a>
+            <span class="ov-country">{w.race.country}</span>
+          </li>
+        ))}
+      </ol>
+      <p class="caution">収録馬の勝利のみを掲載しています。旧称のレースは現在の名称で表示しています。</p>
+    </section>
+  </main>
+</BaseLayout>

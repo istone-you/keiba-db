@@ -1,5 +1,6 @@
 import { fetchAll } from './microcms.js';
 import { fetchWikipedia } from './photos.js';
+import { fetchSireParents } from './sires.js';
 
 const first = (v) => (Array.isArray(v) ? v[0] : v) || null;
 
@@ -34,7 +35,13 @@ function normalize(raw, index) {
       source: prof.source || null,
       netkeibaId: prof.netkeibaId || null,
       retiredYear: prof.retiredYear ?? null,
+      owner: prof.owner || null,
+      breeder: prof.breeder || null,
+      earnings: prof.earnings || null,
+      afterCareer: first(prof.afterCareer),
+      deathYear: prof.deathYear ?? null,
     },
+    horseOfYear: String(prof.horseOfYear || '').split(/[,、\s]+/).map(Number).filter(Boolean).sort((a, b) => a - b),
     rivalLinks: (raw.rivals || []).map((r) => ({ id: r.horse?.id, note: r.note || '' })).filter((r) => r.id),
     cmsImage: raw.image?.url ? { url: raw.image.url, width: raw.image.width, height: raw.image.height } : null,
   };
@@ -142,8 +149,49 @@ for (const h of list) {
 for (const k in crownWinners) crownWinners[k].sort((a, b) => a.year - b.year);
 export const tripleCrowns = CROWNS.map((c) => ({ key: c.key, label: c.label, winners: crownWinners[c.key] }));
 
+// 年度代表馬, one entry per award year.
+export const horsesOfTheYear = list
+  .flatMap((h) => h.horseOfYear.map((year) => ({ year, horse: h })))
+  .sort((a, b) => a.year - b.year || a.horse.index - b.horse.index);
+
+// Overseas G1 wins by collected (Japan-related) horses.
+export const overseasWins = list
+  .flatMap((h) => h.races.filter((r) => r.race?.region === '海外').map((r) => ({ year: r.year, horse: h, race: r.race, title: r.title })))
+  .sort((a, b) => a.year - b.year || a.horse.index - b.horse.index);
+
+// Sire lines: a tree of sire names (collected or not) down to collected horses.
+// Names in the tree: collected horses plus the sires of collected horses. A non-collected
+// sire is linked to its own sire only when that sire is already in the tree.
+const treeNames = new Set([...list.map((h) => h.name), ...list.map((h) => h.pedigree.sire).filter(Boolean)]);
+const sireParents = await fetchSireParents([...treeNames].filter((n) => !byName.has(n)), new Set(byName.keys()));
+const parentOf = (name) => {
+  const p = byName.get(name)?.pedigree.sire || sireParents.get(name) || null;
+  return p && treeNames.has(p) && p !== name ? p : null;
+};
+const childrenOf = new Map();
+for (const name of treeNames) {
+  const p = parentOf(name);
+  if (!p) continue;
+  if (!childrenOf.has(p)) childrenOf.set(p, []);
+  childrenOf.get(p).push(name);
+}
+const birthOf = (name) => byName.get(name)?.profile.birth ?? 0;
+function lineNode(name, seen = new Set()) {
+  seen.add(name);
+  const kids = (childrenOf.get(name) || []).filter((k) => !seen.has(k)).sort((a, b) => birthOf(a) - birthOf(b) || a.localeCompare(b, 'ja'));
+  const children = kids.map((k) => lineNode(k, seen));
+  const size = children.reduce((n, c) => n + (c.horse ? 1 : 0) + c.size, 0);
+  return { name, horse: byName.get(name) || null, children, size };
+}
+export const sireLines = [...treeNames]
+  .filter((name) => !parentOf(name) && childrenOf.has(name))
+  .map((name) => lineNode(name))
+  .sort((a, b) => b.size - a.size || a.name.localeCompare(b.name, 'ja'));
+
 export const horses = list;
 export const races = raceList;
+// When active horses' earnings / records were last refreshed (shown next to their earnings).
+export const dataAsOf = '2026年11月';
 export const groupLabel = { book: '歴代名馬', new: '2023年以降の活躍馬' };
 
 export const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
@@ -151,6 +199,9 @@ export const horseHref = (horse) => basePath + 'horse/' + horse.id + '/';
 export const raceHref = (race) => basePath + 'races/' + race.id + '/';
 export const racesHref = basePath + 'races/';
 export const tripleCrownHref = basePath + 'triple-crown/';
+export const horseOfYearHref = basePath + 'horse-of-the-year/';
+export const sireLinesHref = basePath + 'sire-lines/';
+export const overseasHref = basePath + 'overseas/';
 export const netkeibaHref = (id) => 'https://db.netkeiba.com/horse/' + encodeURIComponent(id) + '/';
 export const wikiHref = (name) => 'https://ja.wikipedia.org/wiki/' + encodeURIComponent(name);
 export const jbisSearchHref = (name) => 'https://www.google.com/search?q=' + encodeURIComponent(name + ' 競走馬 site:jbis.or.jp/horse/');

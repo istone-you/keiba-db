@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HorsePhoto from '../../components/HorsePhoto.astro';
+import { horsesOfTheYear, horseHref } from '../../lib/horses.js';
+
+const newestFirst = [...horsesOfTheYear].reverse();
+const first = horsesOfTheYear[0]?.year;
+---
+<BaseLayout
+  title="年度代表馬 | UMA ATLAS"
+  description={`${first}年から続く年度代表馬の一覧。その年の日本競馬で最も活躍した馬たち。`}
+>
+  <main class="wrap races-page">
+    <header class="page-head">
+      <p class="eyebrow-dark">HORSE OF THE YEAR</p>
+      <h1>年度代表馬</h1>
+      <p class="muted crown-intro">その年の日本競馬で最も活躍した馬に贈られる称号。{first}年の啓衆社賞に始まり、現在のJRA賞へと続いています。</p>
+    </header>
+
+    <ol class="hoy-list">
+      {newestFirst.map(({ year, horse }) => (
+        <li>
+          <a class="hoy-item" href={horseHref(horse)}>
+            <time>{year}</time>
+            <HorsePhoto horse={horse} />
+            <span class="hoy-body">
+              <span class="hoy-name">{horse.name}</span>
+              <span class="hoy-anchor">{horse.anchor}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </main>
+</BaseLayout>

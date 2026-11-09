@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import HorseCard from '../../components/HorseCard.astro';
 import HorsePhoto from '../../components/HorsePhoto.astro';
-import { horses, horseHref, raceHref, tripleCrownHref, basePath, wikiHref, netkeibaHref, jbisSearchHref, groupLabel } from '../../lib/horses.js';
+import { horses, horseHref, raceHref, tripleCrownHref, horseOfYearHref, basePath, wikiHref, netkeibaHref, jbisSearchHref, groupLabel, dataAsOf } from '../../lib/horses.js';
 
 export function getStaticPaths() {
   return horses.map((horse) => ({ params: { id: horse.id }, props: { horse } }));
@@ -19,6 +19,12 @@ const facts = [
   ['毛色', prof.coat],
   ['調教師', prof.trainer],
   ['通算成績', prof.record],
+  ['獲得賞金', prof.earnings && prof.earnings + (prof.retiredYear ? '' : `（${dataAsOf}時点）`)],
+  ['馬主', prof.owner],
+  ['生産牧場', prof.breeder],
+  ['引退', prof.retiredYear ? prof.retiredYear + '年' : '現役'],
+  ['引退後', prof.afterCareer],
+  ['没年', prof.deathYear ? prof.deathYear + '年' : null],
 ].filter(([, v]) => v);
 
 const pedigreeRows = [
@@ -53,6 +59,7 @@ const bestRace = (h) => h.races.at(-1) ? `${h.races.at(-1).year} ${h.races.at(-1
         <p class="detail-desc">{horse.desc}</p>
         <ul class="badges">
           {horse.crowns.map((c) => <li class="badge-crown"><a href={tripleCrownHref}>{c.year}年 {c.label}</a></li>)}
+          {horse.horseOfYear.length > 0 && <li class="badge-crown"><a href={horseOfYearHref}>年度代表馬 {horse.horseOfYear.map((y) => y + '年').join('・')}</a></li>}
           <li>代表レース {horse.races.length}件</li>
           {ped.sire && <li>血統情報あり</li>}
           {offspringCount > 0 && <li><a href="#offspring">収録産駒 {offspringCount}頭</a></li>}

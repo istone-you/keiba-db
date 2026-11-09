@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { basePath, racesHref, tripleCrownHref } from '../lib/horses.js';
+import { basePath, racesHref, tripleCrownHref, horseOfYearHref, sireLinesHref, overseasHref } from '../lib/horses.js';
 
 const {
   title = 'UMA ATLAS | 競走馬図鑑',
@@ -16,6 +16,9 @@ const navItems = [
   { label: '競走馬', href: basePath, match: (p) => p === basePath || p.startsWith(basePath + 'horse/') },
   { label: 'G1レース', href: racesHref, match: (p) => p.startsWith(racesHref) },
   { label: '三冠馬', href: tripleCrownHref, match: (p) => p.startsWith(tripleCrownHref) },
+  { label: '年度代表馬', href: horseOfYearHref, match: (p) => p.startsWith(horseOfYearHref) },
+  { label: '血統', href: sireLinesHref, match: (p) => p.startsWith(sireLinesHref) },
+  { label: '海外遠征', href: overseasHref, match: (p) => p.startsWith(overseasHref) },
 ].map((item) => ({ ...item, current: path === item.href, active: item.match(path) }));
 ---
 <!doctype html>
@@ -42,6 +45,15 @@ const navItems = [
             ? <span class="nav-item is-active" aria-current="page">{item.label}</span>
             : <a class:list={['nav-item', item.active && 'is-active']} href={item.href}>{item.label}</a>)}
         </nav>
+        <!-- Narrow screens: the same links behind a menu button (works without JavaScript). -->
+        <details class="menu">
+          <summary aria-label="メニューを開く"><span aria-hidden="true">☰</span></summary>
+          <nav class="menu-panel" aria-label="メインメニュー">
+            {navItems.map((item) => item.current
+              ? <span class="menu-item is-active" aria-current="page">{item.label}</span>
+              : <a class:list={['menu-item', item.active && 'is-active']} href={item.href}>{item.label}</a>)}
+          </nav>
+        </details>
       </div>
     </header>
     <slot />
