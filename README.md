@@ -6,7 +6,7 @@
 
 ## サイト構成
 
-- データは **microCMS（サービス `keiba-db`）** で管理し、ビルド時に取得します。API は `horses`（競走馬）と `races`（G1レース）の2つです。181頭・G1レース57競走を収録（2026年11月時点）。
+- データは **microCMS（サービス `keiba-db`）** で管理し、ビルド時に取得します。API は `horses`（競走馬）と `races`（G1レース）の2つです。201頭・G1レース57競走を収録（2026年11月時点）。
 - `src/lib/microcms.js` — microCMSからの全件取得（100件ずつページング）
 - `src/lib/horses.js` — データ整形、産駒・関連馬の解決、URL生成
 - `src/lib/photos.js` — Wikipediaの写真と記事タイトルをビルド時に取得（「○○ (競走馬)」の記事を優先）
