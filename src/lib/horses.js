@@ -16,7 +16,7 @@ function normalize(raw, index) {
     desc: raw.desc || '',
     story: raw.story || '',
     races: (raw.races || [])
-      .map((r) => ({ year: Number(r.year) || null, title: r.title || '', raceId: r.raceRef?.id || null }))
+      .map((r) => ({ year: Number(r.year) || null, title: r.title || '', raceId: r.raceRef?.id || null, netkeibaRaceId: r.netkeibaRaceId || null, hasVideo: !!r.hasVideo }))
       .sort((a, b) => (a.year ?? 0) - (b.year ?? 0)),
     pedigree: {
       sire: ped.sire || null,
@@ -117,7 +117,7 @@ const raceById = new Map(raceList.map((r) => [r.id, r]));
 for (const h of list) {
   for (const r of h.races) {
     r.race = (r.raceId && raceById.get(r.raceId)) || null;
-    if (r.race) r.race.winners.push({ horse: h, year: r.year, title: r.title });
+    if (r.race) r.race.winners.push({ horse: h, year: r.year, title: r.title, entry: r });
   }
 }
 for (const r of raceList) r.winners.sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.horse.index - b.horse.index);
@@ -206,6 +206,12 @@ export const tripleCrownHref = basePath + 'triple-crown/';
 export const horseOfYearHref = basePath + 'horse-of-the-year/';
 export const sireLinesHref = basePath + 'sire-lines/';
 export const overseasHref = basePath + 'overseas/';
+// netkeiba race video page; local (NAR) races have a 2-digit venue code 11–98 at positions 4–5.
+export const netkeibaMovieHref = (raceId) => {
+  const venue = Number(String(raceId).slice(4, 6));
+  const host = venue > 10 && venue < 99 ? 'nar' : 'race';
+  return `https://${host}.netkeiba.com/race/movie.html?race_id=${encodeURIComponent(raceId)}`;
+};
 export const netkeibaHref = (id) => 'https://db.netkeiba.com/horse/' + encodeURIComponent(id) + '/';
 export const wikiHref = (name) => 'https://ja.wikipedia.org/wiki/' + encodeURIComponent(name);
 export const jbisSearchHref = (name) => 'https://www.google.com/search?q=' + encodeURIComponent(name + ' 競走馬 site:jbis.or.jp/horse/');

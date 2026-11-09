@@ -184,6 +184,10 @@ a.menu-item:hover { background: var(--mint); }
 .race-name { grid-area: name; font-weight: 800; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .race-meta { grid-area: meta; font-size: 11px; color: var(--muted); }
 .race-count { grid-area: count; font-size: 12px; color: var(--muted); }
+.video-link { flex-shrink: 0; margin-left: auto; padding: 1px 8px; border: 1px solid #bfd3c6; border-radius: 999px; font-size: 11px; font-weight: 700; color: #28553b !important; text-decoration: none !important; white-space: nowrap; align-self: center; }
+.video-link:hover { background: #e9f3eb; }
+.winner { display: grid; gap: 6px; align-content: start; }
+.winner .video-link { justify-self: start; margin-left: 2px; }
 .timeline a { color: inherit; text-decoration-color: #9fbcab; text-underline-offset: 3px; }
 .timeline a:hover { color: var(--green-2); }
 

@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import HorseCard from '../../components/HorseCard.astro';
-import { races, racesHref } from '../../lib/horses.js';
+import { races, racesHref, netkeibaMovieHref } from '../../lib/horses.js';
 
 export function getStaticPaths() {
   return races.map((race) => ({ params: { id: race.id }, props: { race } }));
@@ -32,8 +32,11 @@ const facts = [
     <section class="panel">
       <h2>収録馬の勝利<small class="panel-sub">{race.winners.length}件・新しい順</small></h2>
       <div class="grid grid-compact">
-        {race.winners.map(({ horse, year }) => (
-          <HorseCard horse={horse} compact note={`${year}年`} />
+        {race.winners.map(({ horse, year, entry }) => (
+          <div class="winner">
+            <HorseCard horse={horse} compact note={`${year}年`} />
+            {entry.hasVideo && entry.netkeibaRaceId && <a class="video-link" href={netkeibaMovieHref(entry.netkeibaRaceId)} target="_blank" rel="noopener noreferrer" aria-label={`${year}年${race.name}の映像（netkeiba）`}>▶ {year}年の映像</a>}
+          </div>
         ))}
       </div>
       <p class="caution">この図鑑に収録されている馬の勝利のみを掲載しています。歴代の全勝ち馬ではありません。</p>
