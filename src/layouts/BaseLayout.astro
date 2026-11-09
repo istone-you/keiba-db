@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { basePath, racesHref } from '../lib/horses.js';
+import { basePath, racesHref, tripleCrownHref } from '../lib/horses.js';
 
 const {
   title = 'UMA ATLAS | 競走馬図鑑',
@@ -15,6 +15,7 @@ const path = Astro.url.pathname;
 const navItems = [
   { label: '競走馬', href: basePath, match: (p) => p === basePath || p.startsWith(basePath + 'horse/') },
   { label: 'G1レース', href: racesHref, match: (p) => p.startsWith(racesHref) },
+  { label: '三冠馬', href: tripleCrownHref, match: (p) => p.startsWith(tripleCrownHref) },
 ].map((item) => ({ ...item, current: path === item.href, active: item.match(path) }));
 ---
 <!doctype html>

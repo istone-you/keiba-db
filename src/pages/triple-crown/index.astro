@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HorseCard from '../../components/HorseCard.astro';
+import { tripleCrowns } from '../../lib/horses.js';
+
+const notes = {
+  classic: '皐月賞・日本ダービー・菊花賞の3つを同じ年に勝った馬。',
+  fillies: '桜花賞・オークス・秋華賞の3つを同じ年に勝った牝馬。1995年までは最終戦がエリザベス女王杯だった。',
+};
+const total = tripleCrowns.reduce((n, c) => n + c.winners.length, 0);
+---
+<BaseLayout
+  title="三冠馬 | UMA ATLAS"
+  description={`クラシック三冠馬と牝馬三冠馬${total}頭。達成した年と、それぞれの物語。`}
+>
+  <main class="wrap races-page">
+    <header class="page-head">
+      <p class="eyebrow-dark">TRIPLE CROWN</p>
+      <h1>三冠馬</h1>
+      <p class="muted crown-intro">3歳の春から秋にかけて行われるクラシック3競走をすべて勝つ「三冠」。日本競馬で最も難しい偉業のひとつです。</p>
+    </header>
+
+    {tripleCrowns.map((c) => (
+      <section class="panel">
+        <h2>{c.label}<small class="panel-sub">{c.winners.length}頭・達成順</small></h2>
+        <p class="muted">{notes[c.key]}</p>
+        <div class="grid grid-compact" style="margin-top: 14px">
+          {c.winners.map(({ horse, year }) => <HorseCard horse={horse} compact note={`${year}年に達成`} />)}
+        </div>
+      </section>
+    ))}
+  </main>
+</BaseLayout>

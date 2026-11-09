@@ -5,7 +5,7 @@ import { horses } from '../lib/horses.js';
 
 const count = (g) => horses.filter((h) => h.group === g).length;
 const searchBlob = (h) => [
-  h.name, h.anchor, h.desc, h.story, h.era,
+  h.name, h.anchor, h.desc, h.story, h.status,
   ...h.races.map((r) => r.title),
   h.pedigree.sire, h.pedigree.dam, h.pedigree.damSire,
   h.profile.trainer, h.profile.coat,

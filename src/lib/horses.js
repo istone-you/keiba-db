@@ -11,11 +11,9 @@ function normalize(raw, index) {
     index,
     name: raw.name,
     group: first(raw.group) || 'book',
-    era: first(raw.era) || '',
     anchor: raw.anchor || '',
     desc: raw.desc || '',
     story: raw.story || '',
-    year: raw.year ?? null,
     races: (raw.races || [])
       .map((r) => ({ year: Number(r.year) || null, title: r.title || '', raceId: r.raceRef?.id || null }))
       .sort((a, b) => (a.year ?? 0) - (b.year ?? 0)),
@@ -35,6 +33,7 @@ function normalize(raw, index) {
       record: prof.record || null,
       source: prof.source || null,
       netkeibaId: prof.netkeibaId || null,
+      retiredYear: prof.retiredYear ?? null,
     },
     rivalLinks: (raw.rivals || []).map((r) => ({ id: r.horse?.id, note: r.note || '' })).filter((r) => r.id),
     cmsImage: raw.image?.url ? { url: raw.image.url, width: raw.image.width, height: raw.image.height } : null,
@@ -91,6 +90,7 @@ for (const h of list) {
     ? { ...h.cmsImage, url: h.cmsImage.url + '?w=640&fm=webp', source: 'cms' }
     : article?.photo ? { ...article.photo, source: 'wikipedia' } : null;
   h.latestYear = Math.max(0, ...h.races.map((r) => r.year || 0));
+  h.status = h.profile.retiredYear ? `${h.profile.retiredYear}年引退` : '現役';
 }
 
 // G1 races with the collected horses that won them.
@@ -115,6 +115,33 @@ for (const h of list) {
 }
 for (const r of raceList) r.winners.sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.horse.index - b.horse.index);
 
+// Triple crowns, derived from each horse's linked wins in a single year.
+// The fillies' final leg was エリザベス女王杯 until 秋華賞 was founded in 1996.
+const CROWNS = [
+  { key: 'classic', label: '三冠馬', legs: () => ['satsuki-sho', 'japanese-derby', 'kikuka-sho'] },
+  { key: 'fillies', label: '牝馬三冠', legs: (y) => ['oka-sho', 'oaks', y < 1996 ? 'queen-elizabeth-cup' : 'shuka-sho'] },
+];
+const crownWinners = Object.fromEntries(CROWNS.map((c) => [c.key, []]));
+for (const h of list) {
+  const byYear = new Map();
+  for (const r of h.races) {
+    if (!r.race || !r.year) continue;
+    if (!byYear.has(r.year)) byYear.set(r.year, new Set());
+    byYear.get(r.year).add(r.race.id);
+  }
+  h.crowns = [];
+  for (const c of CROWNS) {
+    for (const [year, won] of byYear) {
+      if (c.legs(year).every((id) => won.has(id))) {
+        h.crowns.push({ key: c.key, label: c.label, year });
+        crownWinners[c.key].push({ horse: h, year });
+      }
+    }
+  }
+}
+for (const k in crownWinners) crownWinners[k].sort((a, b) => a.year - b.year);
+export const tripleCrowns = CROWNS.map((c) => ({ key: c.key, label: c.label, winners: crownWinners[c.key] }));
+
 export const horses = list;
 export const races = raceList;
 export const groupLabel = { book: '歴代名馬', new: '2023年以降の活躍馬' };
@@ -123,6 +150,7 @@ export const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env
 export const horseHref = (horse) => basePath + 'horse/' + horse.id + '/';
 export const raceHref = (race) => basePath + 'races/' + race.id + '/';
 export const racesHref = basePath + 'races/';
+export const tripleCrownHref = basePath + 'triple-crown/';
 export const netkeibaHref = (id) => 'https://db.netkeiba.com/horse/' + encodeURIComponent(id) + '/';
 export const wikiHref = (name) => 'https://ja.wikipedia.org/wiki/' + encodeURIComponent(name);
 export const jbisSearchHref = (name) => 'https://www.google.com/search?q=' + encodeURIComponent(name + ' 競走馬 site:jbis.or.jp/horse/');

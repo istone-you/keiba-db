@@ -10,7 +10,7 @@ const lead = horse.races.at(-1);
   <div class="card-body">
     <div class="card-meta">
       <span class:list={['chip', horse.group === 'new' && 'chip-new']}>{horse.group === 'book' ? '名馬' : '近年'}</span>
-      <span>{horse.era}</span>
+      <span class:list={['status', !horse.profile.retiredYear && 'status-active']}>{horse.status}</span>
     </div>
     <h3 class="card-title">{horse.name}</h3>
     <div class="card-anchor">{horse.anchor}</div>
