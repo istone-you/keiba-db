@@ -1,8 +1,11 @@
 ---
 // One node of a sire line: the sire's name (linked when collected) and its collected offspring.
-import { horseHref } from '../lib/horses.js';
+import { horseHref, horses } from '../lib/horses.js';
 
-const { node } = Astro.props;
+// mate: which other parent to show under collected names ('dam' in sire lines, 'sire' in maternal families).
+const { node, mate } = Astro.props;
+const mateName = mate && node.horse?.pedigree[mate];
+const mateHorse = mateName && horses.find((h) => h.name === mateName);
 ---
 <li>
   <div class="tree-node">
@@ -12,9 +15,10 @@ const { node } = Astro.props;
     {node.horse?.profile.birth && <small>{node.horse.profile.birth}年生</small>}
     {node.horse?.horseOfYear.length > 0 && <small class="tree-tag">年度代表馬</small>}
   </div>
+  {mateName && <div class="tree-mate">{mate === 'dam' ? '母' : '父'} {mateHorse ? <a href={horseHref(mateHorse)}>{mateName}</a> : mateName}</div>}
   {node.children.length > 0 && (
     <ul>
-      {node.children.map((child) => <Astro.self node={child} />)}
+      {node.children.map((child) => <Astro.self node={child} mate={mate} />)}
     </ul>
   )}
 </li>
