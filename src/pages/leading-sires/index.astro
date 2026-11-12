@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { sireRankings, horseHref } from '../../lib/horses.js';
+
+const first = sireRankings.at(-1)?.year;
+const last = sireRankings[0]?.year;
+---
+<BaseLayout
+  title="リーディングサイアー | UMA ATLAS"
+  description={`${first}年から${last}年までの中央競馬リーディングサイアー（種牡馬ランキング）上位10頭。`}
+>
+  <main class="wrap races-page">
+    <header class="page-head">
+      <p class="eyebrow-dark">LEADING SIRES</p>
+      <h1>リーディングサイアー</h1>
+      <p class="muted crown-intro">中央競馬での産駒の賞金合計による、その年の種牡馬の順位です（上位10頭）。緑の名前はこの図鑑の収録馬です。</p>
+    </header>
+
+    <div class="sire-rank-list">
+      {sireRankings.map(({ year, entries }) => (
+        <section class="panel sire-rank-year">
+          <h2>{year}年</h2>
+          <ol class="sire-rank">
+            {entries.map((e) => (
+              <li class:list={[e.rank === 1 && 'is-top']}>
+                <span class="sr-rank">{e.rank}</span>
+                {e.horse ? <a class="sr-name" href={horseHref(e.horse)}>{e.name}</a> : <span class="sr-name tree-uncollected">{e.name}</span>}
+                {e.earnings && <span class="sr-prize">{e.earnings}</span>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+    <p class="caution">出典：JBISサーチ「年度別サイアー（中央）」。賞金は産駒の収得賞金の合計です。</p>
+  </main>
+</BaseLayout>

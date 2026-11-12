@@ -278,3 +278,17 @@ a.menu-item:hover { background: var(--mint); }
   .panel { padding: 18px 16px; }
   .hero { padding: 36px 0 32px; }
 }
+
+/* Leading sires */
+.sire-rank-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+.sire-rank-year h2 { margin: 0 0 8px; font-size: 17px; }
+.sire-rank { list-style: none; margin: 0; padding: 0; }
+.sire-rank li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: baseline; gap: 8px; padding: 4px 0; border-bottom: 1px solid #eef1ed; font-size: 14px; }
+.sire-rank li:last-child { border-bottom: 0; }
+.sr-rank { color: var(--muted); font-weight: 800; text-align: right; }
+.sr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.sr-name { color: #1f6a47; font-weight: 800; text-decoration: none; }
+a.sr-name:hover { text-decoration: underline; }
+.sr-prize { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.sire-rank li.is-top { font-size: 15px; }
+.sire-rank li.is-top .sr-rank { color: var(--amber); }

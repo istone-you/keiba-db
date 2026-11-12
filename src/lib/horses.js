@@ -47,7 +47,7 @@ function normalize(raw, index) {
   };
 }
 
-const [raw, rawRaces] = await Promise.all([fetchAll('horses'), fetchAll('races')]);
+const [raw, rawRaces, rawRankings] = await Promise.all([fetchAll('horses'), fetchAll('races'), fetchAll('sire-rankings', '-year')]);
 const list = raw.map(normalize);
 const byId = new Map(list.map((h) => [h.id, h]));
 const byName = new Map(list.map((h) => [h.name, h]));
@@ -189,6 +189,15 @@ async function buildLines(key, field) {
     .map((name) => node(name, new Set()))
     .sort((a, b) => b.size - a.size || a.name.localeCompare(b.name, 'ja'));
 }
+// JRA leading sires per year (top 10 from JBIS), newest first; collected sires link to their pages.
+export const sireRankings = rawRankings
+  .map((r) => ({
+    year: r.year,
+    entries: (r.entries || [])
+      .map((e) => ({ rank: e.rank, name: e.name, earnings: e.earnings || null, horse: e.horse ? byId.get(e.horse.id) || null : null }))
+      .sort((a, b) => a.rank - b.rank),
+  }))
+  .sort((a, b) => b.year - a.year);
 export const sireLines = await buildLines('sire', '父');
 export const damLines = await buildLines('dam', '母');
 
@@ -205,6 +214,7 @@ export const racesHref = basePath + 'races/';
 export const tripleCrownHref = basePath + 'triple-crown/';
 export const horseOfYearHref = basePath + 'horse-of-the-year/';
 export const sireLinesHref = basePath + 'sire-lines/';
+export const sireRankingsHref = basePath + 'leading-sires/';
 export const overseasHref = basePath + 'overseas/';
 // netkeiba race video page; local (NAR) races have a 2-digit venue code 11–98 at positions 4–5.
 export const netkeibaMovieHref = (raceId) => {
