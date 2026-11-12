@@ -105,6 +105,8 @@ a.menu-item:hover { background: var(--mint); }
 .chip-new { background: #f5e8d2; color: #85602a; }
 .card-title { margin: 4px 0 0; font-size: 18px; line-height: 1.4; }
 .card-anchor { color: var(--amber); font-weight: 800; font-size: 13px; }
+.card-parents { display: flex; flex-direction: column; margin-top: 4px; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.card-parents span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-desc { margin: 6px 0 0; font-size: 13px; color: #45534b; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .card-foot { margin-top: auto; padding-top: 10px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-compact .card-title { font-size: 15px; }

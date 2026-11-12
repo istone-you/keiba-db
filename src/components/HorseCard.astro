@@ -4,6 +4,7 @@ import { horseHref } from '../lib/horses.js';
 
 const { horse, eager = false, note, caption, compact = false, attrs = {} } = Astro.props;
 const lead = horse.races.at(-1);
+const { sire, dam } = horse.pedigree;
 ---
 <a class:list={['card', compact && 'card-compact']} href={horseHref(horse)} {...attrs}>
   <HorsePhoto horse={horse} eager={eager} />
@@ -14,6 +15,12 @@ const lead = horse.races.at(-1);
     </div>
     <h3 class="card-title">{horse.name}</h3>
     <div class="card-anchor">{horse.anchor}</div>
+    {(sire || dam) && (
+      <div class="card-parents">
+        {sire && <span>父 {sire}</span>}
+        {dam && <span>母 {dam}</span>}
+      </div>
+    )}
     {!compact && <p class="card-desc">{horse.desc}</p>}
     {caption && <p class="card-caption">{caption}</p>}
     <div class="card-foot">{note ?? (lead ? `${lead.year} ${lead.title}` : '—')}</div>
